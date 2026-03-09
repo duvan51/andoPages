@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# dist (Habilitado para despliegue en Hostinger)
 dist-ssr
 *.local
 
