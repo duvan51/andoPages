@@ -1,0 +1,7 @@
+{
+  "name": "PROMEDID - Centro de Bienestar Integral",
+  "description": "Sitio web oficial de PROMEDID, líderes en salud holística y medicina alternativa en Colombia, enfocado en renovación total y bienestar integral.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
