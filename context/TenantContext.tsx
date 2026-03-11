@@ -44,7 +44,13 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
             const cleanHostname = hostname.replace(/^www\./, '');
 
             // Administrative domains that show the SaaS landing vs administrative tools
-            const adminDomains = ['localhost', 'promedid.com', 'admin.promedid.com'];
+            const adminDomains = [
+                'localhost',
+                'promedid.com',
+                'admin.promedid.com',
+                'desarrollandoando.fun',
+                'www.desarrollandoando.fun'
+            ];
 
             try {
                 // 1. Try finding by exact custom domain
