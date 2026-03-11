@@ -28,6 +28,48 @@ const AdminDashboard: React.FC = () => {
     const [managedCompany, setManagedCompany] = useState<any>(null);
 
     useEffect(() => {
+        // Listen for Supabase Auth changes (for Google Login)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                const userEmail = session.user.email;
+
+                // 1. Check if it's the Super Admin
+                if (userEmail === 'aponteramirezduvan@gmail.com') {
+                    setIsSuperAdmin(true);
+                    setIsLoggedIn(true);
+                    localStorage.setItem('promedid_admin_session', 'active');
+                    localStorage.setItem('promedid_admin_role', 'superadmin');
+                } else {
+                    // 2. Check if it's a Tenant admin in the companies table
+                    try {
+                        const { data: company } = await supabase
+                            .from('companies')
+                            .select('id')
+                            .eq('admin_email', userEmail)
+                            .single();
+
+                        if (company) {
+                            setIsSuperAdmin(false);
+                            setIsLoggedIn(true);
+                            setCurrentCompanyId(company.id);
+                            localStorage.setItem('promedid_admin_session', 'active');
+                            localStorage.setItem('promedid_admin_role', 'tenant');
+                            localStorage.setItem('promedid_admin_company', company.id);
+                        } else {
+                            setError('Este correo de Google no está registrado como administrador.');
+                            await supabase.auth.signOut();
+                        }
+                    } catch (err) {
+                        setError('Error al verificar permisos del usuario.');
+                    }
+                }
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    useEffect(() => {
         if (tenant && !currentCompanyId) {
             setCurrentCompanyId(tenant.id);
         }
@@ -62,7 +104,19 @@ const AdminDashboard: React.FC = () => {
         return `https://${managedCompany.slug}.promedid.com`;
     };
 
-
+    const handleGoogleLogin = async () => {
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + window.location.pathname + '#admin'
+                }
+            });
+            if (error) throw error;
+        } catch (err) {
+            setError('Error al iniciar sesión con Google.');
+        }
+    };
 
     const handleLogin = async (email: string, pass: string, remember: boolean) => {
         // 1. Master Login for Super Admin
@@ -117,15 +171,17 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
         setIsLoggedIn(false);
         setIsSuperAdmin(false);
         localStorage.removeItem('promedid_admin_session');
         localStorage.removeItem('promedid_admin_role');
+        localStorage.removeItem('promedid_admin_company');
     };
 
     if (!isLoggedIn) {
-        return <AdminAuth onLogin={handleLogin} error={error} />;
+        return <AdminAuth onLogin={handleLogin} onGoogleLogin={handleGoogleLogin} error={error} />;
     }
 
     return (
