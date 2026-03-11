@@ -81,7 +81,7 @@ const SaaSLanding: React.FC<SaaSLandingProps> = ({ onLoginClick }) => {
                             </h2>
                             <ul className="space-y-4">
                                 {[
-                                    `Usa subdominios gratuitos .${window.location.hostname.split('.').slice(-2).join('.')}`,
+                                    `Páginas instantáneas /tu-marca`,
                                     'Conecta dominios propios .com, .es, .co',
                                     'Certificado SSL automático y gratuito',
                                     'Infraestructura optimizada en AWS/Supabase'

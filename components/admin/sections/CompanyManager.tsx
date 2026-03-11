@@ -208,8 +208,8 @@ const CompanyManager: React.FC<CompanyManagerProps> = ({ onSelectCompany, curren
                                 <div className="flex gap-4">
                                     <a
                                         href={window.location.hostname === 'localhost' || window.location.hostname.includes('localhost')
-                                            ? `http://${c.slug}.localhost:${window.location.port || '5173'}`
-                                            : `https://${c.slug}.${window.location.hostname.split('.').slice(-2).join('.')}`}
+                                            ? `http://localhost:${window.location.port || '5173'}/${c.slug}`
+                                            : `${window.location.origin}/${c.slug}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-[10px] font-black text-slate-900 uppercase hover:text-emerald-600 flex items-center gap-1 transition-colors"
@@ -448,7 +448,7 @@ const CompanyManager: React.FC<CompanyManagerProps> = ({ onSelectCompany, curren
                                     <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
                                 </div>
                                 <div className="bg-slate-100 px-4 py-1 rounded-lg text-[10px] font-bold text-slate-400">
-                                    {currentCompany.slug || 'empresa'}.{window.location.hostname.split('.').slice(-2).join('.')}
+                                    {window.location.hostname}/{currentCompany.slug || 'empresa'}
                                 </div>
                                 <div className="w-12"></div>
                             </div>

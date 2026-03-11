@@ -97,7 +97,7 @@ const AdminDashboard: React.FC = () => {
 
         // Development mode: localhost
         if (hostname === 'localhost' || hostname.includes('localhost')) {
-            return `${protocol}//${managedCompany.slug}.localhost:${port || '5173'}`;
+            return `${protocol}//localhost:${port || '5173'}/${managedCompany.slug}`;
         }
 
         // 1. If company has a custom domain, use it for preview
