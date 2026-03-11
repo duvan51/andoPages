@@ -82,7 +82,7 @@ export const LANDING_PRESETS = [
             footer: {
                 address: 'Edificio ICONO, Piso 4',
                 phone: '+57 311 234 5678',
-                email: 'contacto@promedid.com',
+                email: 'contacto@empresa.com',
                 description: 'Medicina Integral Avanzada al servicio de tu bienestar. Ubicados en el corazón de la ciudad.'
             },
             order: ['hero', 'pas', 'solutions', 'carousel', 'pricing', 'faq', 'socialProof', 'cta', 'footer'],

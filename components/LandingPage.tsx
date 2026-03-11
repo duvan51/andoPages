@@ -19,10 +19,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
     const carouselRef = useRef<HTMLDivElement>(null);
     const [sessionId] = useState(() => {
         if (typeof window === 'undefined') return '';
-        let sid = sessionStorage.getItem('promedid_sid');
+        let sid = sessionStorage.getItem('ando_sid');
         if (!sid) {
             sid = 'sid_' + Math.random().toString(36).substring(2, 15);
-            sessionStorage.setItem('promedid_sid', sid);
+            sessionStorage.setItem('ando_sid', sid);
         }
         return sid;
     });
@@ -401,8 +401,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                 })}>
                     <div className={cn("container mx-auto px-4 md:px-6 flex justify-between items-center")}>
                         <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-slate-900/20">P</div>
-                            <span className="font-black text-slate-900 tracking-tighter text-xl uppercase">{landing.title?.charAt(0) || 'P'}ROMEDID</span>
+                            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-slate-900/20">{landing.title?.charAt(0) || 'A'}</div>
+                            <span className="font-black text-slate-900 tracking-tighter text-xl uppercase">{landing.title || 'AndoPages'}</span>
                         </div>
                         <button
                             onClick={() => handleAction(landing.config?.header?.actionType || 'whatsapp')}
@@ -517,7 +517,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                 >
                                     {landing.config?.pas?.title || '¿Te sientes identificado con esto?'}
                                 </h2>
-                                <p className="text-slate-500 font-medium">Muchos de nuestros pacientes llegaban así antes de PROMEDID</p>
+                                <p className="text-slate-500 font-medium">Muchos de nuestros pacientes llegaban así antes de conocernos</p>
                             </div>
                             <div className={cn("grid md:grid-cols-3 gap-8")}>
                                 {[

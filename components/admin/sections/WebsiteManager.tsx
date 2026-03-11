@@ -392,7 +392,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                                 <p className="text-[11px] text-emerald-800/60 leading-normal">
                                                     Para activar tu dominio, crea un registro <code className="font-bold">CNAME</code> apuntando a:
                                                     <br />
-                                                    <span className="text-emerald-900 font-bold">promedid.com</span>
+                                                    <span className="text-emerald-900 font-bold">{window.location.hostname.split('.').slice(-2).join('.')}</span>
                                                 </p>
                                             </div>
                                         </div>

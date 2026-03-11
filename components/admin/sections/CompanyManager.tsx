@@ -188,7 +188,7 @@ const CompanyManager: React.FC<CompanyManagerProps> = ({ onSelectCompany, curren
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                                         <Globe size={10} /> Subdominio
                                     </p>
-                                    <p className="text-xs font-bold text-slate-600">{c.slug}.tu-dominio.com</p>
+                                    <p className="text-xs font-bold text-slate-600">{c.slug}.{window.location.hostname.split('.').slice(-2).join('.')}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
@@ -207,9 +207,9 @@ const CompanyManager: React.FC<CompanyManagerProps> = ({ onSelectCompany, curren
                                 </div>
                                 <div className="flex gap-4">
                                     <a
-                                        href={window.location.hostname === 'localhost'
+                                        href={window.location.hostname === 'localhost' || window.location.hostname.includes('localhost')
                                             ? `http://${c.slug}.localhost:${window.location.port || '5173'}`
-                                            : `https://${c.slug}.promedid.com`}
+                                            : `https://${c.slug}.${window.location.hostname.split('.').slice(-2).join('.')}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-[10px] font-black text-slate-900 uppercase hover:text-emerald-600 flex items-center gap-1 transition-colors"
@@ -339,7 +339,7 @@ const CompanyManager: React.FC<CompanyManagerProps> = ({ onSelectCompany, curren
                                         className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/20"
                                         placeholder="ej: clinica-elite"
                                     />
-                                    <p className="text-[10px] text-slate-400 ml-1">Será: {currentCompany.slug}.tudominio.com</p>
+                                    <p className="text-[10px] text-slate-400 ml-1">Será: {currentCompany.slug || 'empresa'}.{window.location.hostname.split('.').slice(-2).join('.')}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Color de Marca</label>
@@ -448,7 +448,7 @@ const CompanyManager: React.FC<CompanyManagerProps> = ({ onSelectCompany, curren
                                     <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
                                 </div>
                                 <div className="bg-slate-100 px-4 py-1 rounded-lg text-[10px] font-bold text-slate-400">
-                                    {currentCompany.slug || 'empresa'}.promedid.com
+                                    {currentCompany.slug || 'empresa'}.{window.location.hostname.split('.').slice(-2).join('.')}
                                 </div>
                                 <div className="w-12"></div>
                             </div>

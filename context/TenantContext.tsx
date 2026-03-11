@@ -46,21 +46,26 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
             // Administrative domains that show the SaaS landing vs administrative tools
             const adminDomains = [
                 'localhost',
-                'promedid.com',
-                'admin.promedid.com',
-                'desarrollandoando.fun',
-                'www.desarrollandoando.fun'
+                'admin.' + window.location.hostname.split('.').slice(-2).join('.'),
+                window.location.hostname.split('.').slice(-2).join('.'),
+                'www.' + window.location.hostname.split('.').slice(-2).join('.')
             ];
 
-            try {
-                // 1. Try finding by exact custom domain
-                let { data: customDomainData } = await supabase
-                    .from('companies')
-                    .select('*')
-                    .in('custom_domain', [hostname, cleanHostname])
-                    .maybeSingle();
+            // Performance: If it's a known admin/platform domain, we can skip search by exact custom domain
+            // unless we want to allow the "master" record to be found this way (which we do if it's the only one).
+            const isMain = adminDomains.includes(hostname) || adminDomains.includes(cleanHostname);
 
-                let data = customDomainData;
+            try {
+                // 1. Try finding by exact custom domain (only if not a known platform domain or if it's localhost)
+                let data = null;
+                if (!isMain || hostname === 'localhost') {
+                    let { data: customDomainData } = await supabase
+                        .from('companies')
+                        .select('*')
+                        .in('custom_domain', [hostname, cleanHostname])
+                        .maybeSingle();
+                    data = customDomainData;
+                }
 
                 // 2. Try subdomains (e.g. clinic.promeid.com)
                 if (!data) {
@@ -78,8 +83,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                     }
                 }
 
-                // 3. Check if it's the main administrative/SaaS domain
-                const isMain = adminDomains.includes(hostname) || adminDomains.includes(cleanHostname);
+                // 3. Already calculated isMain above
 
                 // If we are on a main domain and no company custom domain matched it directly,
                 // we check if we should show the "Master" tenant site or the SaaS landing.

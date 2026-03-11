@@ -81,7 +81,7 @@ const SaaSLanding: React.FC<SaaSLandingProps> = ({ onLoginClick }) => {
                             </h2>
                             <ul className="space-y-4">
                                 {[
-                                    'Usa subdominios gratuitos .promedid.com',
+                                    `Usa subdominios gratuitos .${window.location.hostname.split('.').slice(-2).join('.')}`,
                                     'Conecta dominios propios .com, .es, .co',
                                     'Certificado SSL automático y gratuito',
                                     'Infraestructura optimizada en AWS/Supabase'
@@ -120,10 +120,10 @@ const SaaSLanding: React.FC<SaaSLandingProps> = ({ onLoginClick }) => {
             <footer className="py-12 bg-slate-950 text-white">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:row items-center justify-between gap-8">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center font-bold">P</div>
-                        <span className="font-black text-xl tracking-tighter uppercase">Promedid</span>
+                        <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center font-bold">A</div>
+                        <span className="font-black text-xl tracking-tighter uppercase">AndoPages</span>
                     </div>
-                    <p className="text-slate-500 text-sm font-bold">© 2026 Promedid SaaS. Todos los derechos reservados.</p>
+                    <p className="text-slate-500 text-sm font-bold">© 2026 AndoPages SaaS. Todos los derechos reservados.</p>
                 </div>
             </footer>
         </div>
