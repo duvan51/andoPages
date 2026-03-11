@@ -92,16 +92,24 @@ const AdminDashboard: React.FC = () => {
         if (!managedCompany) return undefined;
 
         const hostname = window.location.hostname;
+        const protocol = window.location.protocol;
         const port = window.location.port;
 
-        // Development mode: Always use the internal slug for preview
+        // Development mode: localhost
         if (hostname === 'localhost' || hostname.includes('localhost')) {
-            return `http://${managedCompany.slug}.localhost:${port || '5173'}`;
+            return `${protocol}//${managedCompany.slug}.localhost:${port || '5173'}`;
         }
 
-        // Production mode: Always use the platform's internal subdomain for Preview
-        // This allows organizing content without it being "publicly" visible on the custom domain yet
-        return `https://${managedCompany.slug}.promedid.com`;
+        // 1. If company has a custom domain, use it for preview
+        if (managedCompany.custom_domain) {
+            return `${protocol}//${managedCompany.custom_domain}`;
+        }
+
+        // 2. Otherwise, use the CURRENT platform domain as base for the subdomain
+        // Instead of hardcoding promedid.com, we use the current hostname
+        // This handles desarrollandoando.fun or any other platform domain
+        const baseDomain = hostname.split('.').slice(-2).join('.');
+        return `${protocol}//${managedCompany.slug}.${baseDomain}`;
     };
 
     const handleGoogleLogin = async () => {
