@@ -113,9 +113,14 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                 }
 
                 // Set isMainDomain: true ONLY if we are on a platform domain AND 
-                // we haven't matched a custom domain explicitly.
+                // we haven't matched a company via path or custom domain.
+                const pathSegments = window.location.pathname.split('/').filter(Boolean);
+                const isPathTenant = pathSegments.length > 0 && data && data.slug === pathSegments[0];
                 const isMatchedByCustomDomain = data && (data.custom_domain === hostname || data.custom_domain === cleanHostname);
-                const isShowingSaaSLanding = isMain && !isMatchedByCustomDomain;
+                
+                // It's the SaaS landing if we are on an admin domain AND 
+                // we didn't match a tenant by path AND we didn't match a tenant by custom domain.
+                const isShowingSaaSLanding = isMain && !isPathTenant && !isMatchedByCustomDomain;
                 setIsMainDomain(isShowingSaaSLanding);
 
                 if (data) {
