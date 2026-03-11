@@ -37,18 +37,14 @@ const App: React.FC = () => {
       // If we see an access token from Supabase anywhere in the hash
       if (hash.includes('access_token=') || hash === '#admin' || hash.startsWith('#admin&')) {
         setCurrentView('admin');
-        
-        // If it's the long auth hash, we'll let Supabase handle it but keep the view
-        if (hash.includes('access_token=')) {
-          // After auth state is established, we can eventually clean this up, but for now 
-          // just ensuring we are in the admin view is enough.
-        }
       } else if (hash.startsWith('#landing/')) {
         const slug = hash.replace('#landing/', '');
         setLandingSlug(slug);
         setCurrentView('landing');
       } else if (currentView === 'admin' || currentView === 'landing') {
-        if (!hash || hash === '#home') {
+        // ONLY reset to home if the hash is explicitly #home or empty AND 
+        // it wasn't a Supabase auth redirect (which contains access_token)
+        if (hash === '#home' || (!hash && !window.location.href.includes('access_token'))) {
           setCurrentView('home');
         }
       }

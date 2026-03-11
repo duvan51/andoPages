@@ -57,7 +57,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                 let { data } = await supabase
                     .from('companies')
                     .select('*')
-                    .or(`custom_domain.eq.${hostname},custom_domain.eq.${cleanHostname}`)
+                    .or(`custom_domain.eq."${hostname}",custom_domain.eq."${cleanHostname}"`)
                     .single();
 
                 // 2. Try subdomains (e.g. clinic.promeid.com)
