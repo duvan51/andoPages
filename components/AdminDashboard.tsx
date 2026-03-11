@@ -105,11 +105,9 @@ const AdminDashboard: React.FC = () => {
             return `${protocol}//${managedCompany.custom_domain}`;
         }
 
-        // 2. Otherwise, use the CURRENT platform domain as base for the subdomain
-        // Instead of hardcoding promedid.com, we use the current hostname
-        // This handles desarrollandoando.fun or any other platform domain
-        const baseDomain = hostname.split('.').slice(-2).join('.');
-        return `${protocol}//${managedCompany.slug}.${baseDomain}`;
+        // 2. Otherwise, use path-based routing for the platform domain
+        // This avoids DNS issues with wildcard subdomains on Hostinger
+        return `${protocol}//${hostname}/${managedCompany.slug}`;
     };
 
     const handleGoogleLogin = async () => {

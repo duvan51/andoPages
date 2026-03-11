@@ -70,16 +70,32 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                 // 2. Try subdomains (e.g. clinic.promeid.com)
                 if (!data) {
                     const parts = hostname.split('.');
-                    // Check if it's a subdomain of the main platform (not a custom domain)
-                    if (parts.length >= 2 && !adminDomains.includes(hostname)) {
+                    if (parts.length >= 2 && !isMain) {
                         const slug = parts[0];
-                        console.log('Searching for company with slug:', slug);
                         const { data: subdomainData } = await supabase
                             .from('companies')
                             .select('*')
                             .eq('slug', slug)
                             .maybeSingle();
                         data = subdomainData;
+                    }
+                }
+
+                // 3. FALLBACK: Try Path-based identification (e.g. desarrollanding.fun/clinica)
+                if (!data && isMain) {
+                    const pathSegments = window.location.pathname.split('/').filter(Boolean);
+                    if (pathSegments.length > 0) {
+                        const pathSlug = pathSegments[0];
+                        // Avoid matching "admin" or other system paths if they exist
+                        const protectedPaths = ['admin', 'api', 'assets', 'static', 'dashboard'];
+                        if (!protectedPaths.includes(pathSlug.toLowerCase())) {
+                            const { data: pathData } = await supabase
+                                .from('companies')
+                                .select('*')
+                                .eq('slug', pathSlug)
+                                .maybeSingle();
+                            data = pathData;
+                        }
                     }
                 }
 
