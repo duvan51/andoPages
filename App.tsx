@@ -33,7 +33,8 @@ const App: React.FC = () => {
     // Detect #admin in URL
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash === '#admin' || hash.startsWith('#admin&') || hash.startsWith('#access_token=')) {
+      // Normalize double hash or access tokens from Supabase
+      if (hash.includes('#access_token') || hash === '#admin' || hash.startsWith('#admin&')) {
         setCurrentView('admin');
       } else if (hash.startsWith('#landing/')) {
         const slug = hash.replace('#landing/', '');

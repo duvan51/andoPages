@@ -106,8 +106,9 @@ const AdminDashboard: React.FC = () => {
 
     const handleGoogleLogin = async () => {
         try {
-            // Force the redirect to the #admin hash specifically
-            const redirectTo = `${window.location.origin}${window.location.pathname}#admin`;
+            // Use the base origin and let Supabase handle the redirect correctly
+            // Most consistent way is to let Supabase return to the Site URL or a clean URL
+            const redirectTo = `${window.location.origin}/#admin`;
             
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
