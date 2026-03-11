@@ -106,9 +106,8 @@ const AdminDashboard: React.FC = () => {
 
     const handleGoogleLogin = async () => {
         try {
-            // Use the base origin and let Supabase handle the redirect correctly
-            // Most consistent way is to let Supabase return to the Site URL or a clean URL
-            const redirectTo = `${window.location.origin}/#admin`;
+            // Simplify redirect to root. App.tsx will detect the token and show admin.
+            const redirectTo = `${window.location.origin}/`;
             
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
