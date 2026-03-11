@@ -68,11 +68,12 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                     // Check if it's a subdomain of the main platform (not a custom domain)
                     if (parts.length >= 2 && !adminDomains.includes(hostname)) {
                         const slug = parts[0];
+                        console.log('Searching for company with slug:', slug);
                         const { data: subdomainData } = await supabase
                             .from('companies')
                             .select('*')
                             .eq('slug', slug)
-                            .single();
+                            .maybeSingle();
                         data = subdomainData;
                     }
                 }

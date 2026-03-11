@@ -23,7 +23,7 @@ import WebsiteContent from './components/WebsiteContent';
 import { useTenant } from './hooks/useTenant';
 
 const App: React.FC = () => {
-  const { tenant, isMainDomain, isLoading: isTenantLoading } = useTenant();
+  const { tenant, isMainDomain, isLoading: isTenantLoading, isError: isTenantError } = useTenant();
   const [currentView, setCurrentView] = useState<'home' | 'services' | 'service-detail' | 'admin' | 'landing'>('home');
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [landingSlug, setLandingSlug] = useState<string | null>(null);
@@ -79,6 +79,18 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (isTenantError && !isMainDomain) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
+        <div className="max-w-md bg-white p-10 rounded-3xl shadow-xl shadow-slate-200 border border-slate-100">
+           <h1 className="text-2xl font-black text-slate-900 mb-4">¡Ups!</h1>
+           <p className="text-slate-600 font-semibold mb-6">No pudimos encontrar la página que buscas. Verifica el dominio o contacta a soporte.</p>
+           <a href="https://desarrollandoando.fun" className="inline-block bg-emerald-600 text-white font-bold px-8 py-3 rounded-2xl">Ir al Inicio</a>
+        </div>
       </div>
     );
   }
