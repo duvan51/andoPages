@@ -33,7 +33,7 @@ const App: React.FC = () => {
     // Detect #admin in URL
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash === '#admin') {
+      if (hash === '#admin' || hash.startsWith('#admin&') || hash.startsWith('#access_token=')) {
         setCurrentView('admin');
       } else if (hash.startsWith('#landing/')) {
         const slug = hash.replace('#landing/', '');
