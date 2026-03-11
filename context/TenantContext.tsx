@@ -54,11 +54,13 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
 
             try {
                 // 1. Try finding by exact custom domain
-                let { data } = await supabase
+                let { data: customDomainData } = await supabase
                     .from('companies')
                     .select('*')
-                    .or(`custom_domain.eq."${hostname}",custom_domain.eq."${cleanHostname}"`)
-                    .single();
+                    .in('custom_domain', [hostname, cleanHostname])
+                    .maybeSingle();
+
+                let data = customDomainData;
 
                 // 2. Try subdomains (e.g. clinic.promeid.com)
                 if (!data) {
@@ -85,7 +87,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                         .from('companies')
                         .select('*')
                         .eq('slug', 'master')
-                        .single();
+                        .maybeSingle();
                     data = masterData;
                 }
 
