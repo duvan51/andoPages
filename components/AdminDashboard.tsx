@@ -106,10 +106,13 @@ const AdminDashboard: React.FC = () => {
 
     const handleGoogleLogin = async () => {
         try {
+            // Force the redirect to the #admin hash specifically
+            const redirectTo = `${window.location.origin}${window.location.pathname}#admin`;
+            
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin + window.location.pathname + '#admin'
+                    redirectTo: redirectTo
                 }
             });
             if (error) throw error;
