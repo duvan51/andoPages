@@ -174,6 +174,29 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
+    const handleRegister = async (email: string, pass: string) => {
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password: pass,
+                options: {
+                    emailRedirectTo: `${window.location.origin}${window.location.pathname}#admin`
+                }
+            });
+
+            if (error) throw error;
+
+            if (data?.user) {
+                // You might want to create a company entry here automatically
+                // or redirect to a "Setup" page. 
+                // For now, we inform the user to check their email.
+                alert('Registro exitoso. Por favor verifica tu correo electrónico para activar tu cuenta.');
+            }
+        } catch (err: any) {
+            setError(err.message || 'Error al registrar usuario.');
+        }
+    };
+
     const handleLogout = async () => {
         await supabase.auth.signOut();
         setIsLoggedIn(false);
@@ -184,7 +207,14 @@ const AdminDashboard: React.FC = () => {
     };
 
     if (!isLoggedIn) {
-        return <AdminAuth onLogin={handleLogin} onGoogleLogin={handleGoogleLogin} error={error} />;
+        return (
+            <AdminAuth 
+                onLogin={handleLogin} 
+                onRegister={handleRegister} 
+                onGoogleLogin={handleGoogleLogin} 
+                error={error} 
+            />
+        );
     }
 
     return (

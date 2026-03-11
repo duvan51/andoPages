@@ -4,11 +4,13 @@ import { Lock, Mail, Eye, EyeOff, ArrowRight } from 'lucide-react';
 
 interface AdminAuthProps {
     onLogin: (email: string, password: string, remember: boolean) => void;
+    onRegister: (email: string, password: string) => void;
     onGoogleLogin: () => void;
     error?: string;
 }
 
-const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onGoogleLogin, error }) => {
+const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onRegister, onGoogleLogin, error }) => {
+    const [mode, setMode] = useState<'login' | 'register'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(true);
@@ -16,7 +18,11 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onGoogleLogin, error }) 
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onLogin(email, password, rememberMe);
+        if (mode === 'login') {
+            onLogin(email, password, rememberMe);
+        } else {
+            onRegister(email, password);
+        }
     };
 
     return (
@@ -30,8 +36,14 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onGoogleLogin, error }) 
                     <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl mx-auto mb-6 shadow-xl shadow-emerald-600/30 animate-float">
                         P
                     </div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">Acceso Administrador</h1>
-                    <p className="text-slate-500 font-semibold mt-2 px-8">Bienvenido de nuevo. Ingresa tus credenciales para administrar tu proyecto.</p>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                        {mode === 'login' ? 'Acceso Administrador' : 'Crear Cuenta'}
+                    </h1>
+                    <p className="text-slate-500 font-semibold mt-2 px-8">
+                        {mode === 'login' 
+                            ? 'Bienvenido de nuevo. Ingresa tus credenciales para administrar tu proyecto.' 
+                            : 'Únete a nuestra plataforma y comienza a crear tus propias páginas hoy mismo.'}
+                    </p>
                 </div>
 
                 <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-emerald-900/10 border border-slate-100">
@@ -54,7 +66,7 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onGoogleLogin, error }) 
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Contraseña de Acceso</label>
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Contraseña</label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
                                     <Lock size={18} />
@@ -77,20 +89,22 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onGoogleLogin, error }) 
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between px-1">
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                                <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${rememberMe ? 'bg-emerald-600 border-emerald-600' : 'bg-white border-slate-200 group-hover:border-emerald-400'}`}>
-                                    {rememberMe && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                                </div>
-                                <input
-                                    type="checkbox"
-                                    className="hidden"
-                                    checked={rememberMe}
-                                    onChange={(e) => setRememberMe(e.target.checked)}
-                                />
-                                <span className="text-xs font-bold text-slate-500 mt-0.5">Recordar mi sesión</span>
-                            </label>
-                        </div>
+                        {mode === 'login' && (
+                            <div className="flex items-center justify-between px-1">
+                                <label className="flex items-center gap-2 cursor-pointer group">
+                                    <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${rememberMe ? 'bg-emerald-600 border-emerald-600' : 'bg-white border-slate-200 group-hover:border-emerald-400'}`}>
+                                        {rememberMe && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        className="hidden"
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                    />
+                                    <span className="text-xs font-bold text-slate-500 mt-0.5">Recordar mi sesión</span>
+                                </label>
+                            </div>
+                        )}
 
                         {error && (
                             <div className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-bold border border-red-100 animate-shake">
@@ -102,7 +116,7 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onGoogleLogin, error }) 
                             type="submit"
                             className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-2 group"
                         >
-                            Iniciar Sesión
+                            {mode === 'login' ? 'Iniciar Sesión' : 'Crear mi Cuenta'}
                             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                         </button>
 
@@ -141,6 +155,17 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onGoogleLogin, error }) 
                             Google
                         </button>
                     </form>
+
+                    <div className="mt-8 text-center">
+                        <button 
+                            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+                            className="text-sm font-bold text-slate-500 hover:text-emerald-600 transition-colors"
+                        >
+                            {mode === 'login' 
+                                ? '¿No tienes cuenta? Regístrate aquí' 
+                                : '¿Ya tienes cuenta? Inicia sesión'}
+                        </button>
+                    </div>
                 </div>
 
                 <p className="text-center mt-12 text-slate-400 text-xs font-bold uppercase tracking-widest">
