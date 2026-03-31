@@ -20,7 +20,7 @@ interface TenantContextType {
     isLoading: boolean;
     isError: boolean;
     isMainDomain: boolean;
-    setTenant?: (tenant: Company | null) => void; // For preview purposes
+    setTenant?: (tenant: Company | null) => void; 
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -39,11 +39,11 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
         }
 
         const identifyTenant = async () => {
+            console.log('--- DETECCIÓN: Paso 1 (Inicio) ---');
             setIsLoading(true);
             const hostname = window.location.hostname;
             const cleanHostname = hostname.replace(/^www\./, '');
 
-            // Administrative domains that show the SaaS landing vs administrative tools
             const adminDomains = [
                 'localhost',
                 'admin.' + window.location.hostname.split('.').slice(-2).join('.'),
@@ -51,76 +51,78 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                 'www.' + window.location.hostname.split('.').slice(-2).join('.')
             ];
 
-            // Performance: If it's a known admin/platform domain, we can skip search by exact custom domain
-            // unless we want to allow the "master" record to be found this way (which we do if it's the only one).
             const isMain = adminDomains.includes(hostname) || adminDomains.includes(cleanHostname);
+            console.log('--- DETECCIÓN: Paso 2 (Hostname) ---', hostname, isMain);
 
             try {
-                // 1. Try finding by exact custom domain (only if not a known platform domain or if it's localhost)
                 let data = null;
+                
+                // 1. Dominio Custom o Localhost
                 if (!isMain || hostname === 'localhost') {
-                    let { data: customDomainData } = await supabase
+                    console.log('--- DETECCIÓN: Paso 3 (Buscando en DB por dominio) ---');
+                    const { data: customDomainData, error: err1 } = await supabase
                         .from('companies')
                         .select('*')
                         .in('custom_domain', [hostname, cleanHostname])
                         .maybeSingle();
+                    if (err1) console.error('Error en Paso 3:', err1);
                     data = customDomainData;
                 }
 
-                // 2. Try subdomains (e.g. clinic.promeid.com)
+                // 2. Subdominios
                 if (!data) {
+                    console.log('--- DETECCIÓN: Paso 4 (Buscando por subdominio) ---');
                     const parts = hostname.split('.');
                     if (parts.length >= 2 && !isMain) {
                         const slug = parts[0];
-                        const { data: subdomainData } = await supabase
+                        const { data: subdomainData, error: err2 } = await supabase
                             .from('companies')
                             .select('*')
                             .eq('slug', slug)
                             .maybeSingle();
+                        if (err2) console.error('Error en Paso 4:', err2);
                         data = subdomainData;
                     }
                 }
 
-                // 3. FALLBACK: Try Path-based identification (e.g. desarrollanding.fun/clinica)
+                // 3. Fallback: Path segments
                 if (!data && isMain) {
+                    console.log('--- DETECCIÓN: Paso 5 (Buscando por path slug) ---');
                     const pathSegments = window.location.pathname.split('/').filter(Boolean);
                     if (pathSegments.length > 0) {
                         const pathSlug = pathSegments[0];
-                        // Avoid matching "admin" or other system paths if they exist
-                        const protectedPaths = ['admin', 'api', 'assets', 'static', 'dashboard'];
+                        const protectedPaths = ['admin', 'login', 'api', 'assets', 'static', 'dashboard', 'home'];
                         if (!protectedPaths.includes(pathSlug.toLowerCase())) {
-                            const { data: pathData } = await supabase
+                            const { data: pathData, error: err3 } = await supabase
                                 .from('companies')
                                 .select('*')
                                 .eq('slug', pathSlug)
                                 .maybeSingle();
+                            if (err3) console.error('Error en Paso 5:', err3);
                             data = pathData;
                         }
                     }
                 }
 
-                // 3. Already calculated isMain above
-
-                // If we are on a main domain and no company custom domain matched it directly,
-                // we check if we should show the "Master" tenant site or the SaaS landing.
+                // 4. Master default
                 if (!data && isMain) {
-                    const { data: masterData } = await supabase
+                    console.log('--- DETECCIÓN: Paso 6 (Buscando Master) ---');
+                    const { data: masterData, error: err4 } = await supabase
                         .from('companies')
                         .select('*')
                         .eq('slug', 'master')
                         .maybeSingle();
+                    if (err4) console.error('Error en Paso 6:', err4);
                     data = masterData;
                 }
 
-                // Set isMainDomain: true ONLY if we are on a platform domain AND 
-                // we haven't matched a company via path or custom domain.
+                console.log('--- DETECCIÓN: FINALIZADA ---', data ? 'Empresa encontrada' : 'No se encontró empresa');
+
                 const pathSegments = window.location.pathname.split('/').filter(Boolean);
                 const isPathTenant = pathSegments.length > 0 && data && data.slug === pathSegments[0];
                 const isMatchedByCustomDomain = data && (data.custom_domain === hostname || data.custom_domain === cleanHostname);
-                
-                // It's the SaaS landing if we are on an admin domain AND 
-                // we didn't match a tenant by path AND we didn't match a tenant by custom domain.
                 const isShowingSaaSLanding = isMain && !isPathTenant && !isMatchedByCustomDomain;
+                
                 setIsMainDomain(isShowingSaaSLanding);
 
                 if (data) {
@@ -130,9 +132,10 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                     setIsError(true);
                 }
             } catch (err) {
-                console.error('Tenant detection error:', err);
+                console.error('--- ERROR EN IDENTIFYTENANT ---', err);
                 setIsError(true);
             } finally {
+                console.log('--- DETECCIÓN: Cargando finalizado (setIsLoading false) ---');
                 setIsLoading(false);
             }
         };

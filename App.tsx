@@ -21,6 +21,7 @@ import FashionCollections from './components/FashionCollections';
 import SpecialOffers from './components/SpecialOffers';
 import WebsiteContent from './components/WebsiteContent';
 import { useTenant } from './hooks/useTenant';
+import { supabase } from './lib/supabase'; // Importación necesaria para el auto-login
 
 const App: React.FC = () => {
   const { tenant, isMainDomain, isLoading: isTenantLoading, isError: isTenantError } = useTenant();
@@ -29,32 +30,60 @@ const App: React.FC = () => {
   const [landingSlug, setLandingSlug] = useState<string | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
+  // Función para navegar de forma limpia
+  const navigate = (path: string, view: typeof currentView, slug: string | null = null) => {
+    window.history.pushState({}, '', path);
+    setCurrentView(view);
+    if (slug) setLandingSlug(slug);
+    window.scrollTo(0, 0);
+  };
+
   useEffect(() => {
-    // Detect #admin in URL
-    const handleHashChange = () => {
+    const handleNavigation = () => {
+      const path = window.location.pathname;
       const hash = window.location.hash;
-      
-      // If we see an access token from Supabase anywhere in the hash
-      if (hash.includes('access_token=') || hash === '#admin' || hash.startsWith('#admin&')) {
+      console.log('--- NAVEGACIÓN --- Path:', path, 'Hash:', hash);
+
+      // 1. Detectar si hay un token de Supabase (Siempre viene en el hash)
+      if (hash.includes('access_token=')) {
+        console.log('Token detectado en URL, forzando vista ADMIN');
         setCurrentView('admin');
-      } else if (hash.startsWith('#landing/')) {
-        const slug = hash.replace('#landing/', '');
+        return;
+      }
+
+      // 2. Rutas basadas en el Pathname
+      if (path === '/admin' || path === '/login') {
+        setCurrentView('admin');
+      } else if (path.startsWith('/landing/')) {
+        const slug = path.replace('/landing/', '');
         setLandingSlug(slug);
         setCurrentView('landing');
-      } else if (currentView === 'admin' || currentView === 'landing') {
-        // ONLY reset to home if the hash is explicitly #home or empty AND 
-        // it wasn't a Supabase auth redirect (which contains access_token)
-        if (hash === '#home' || (!hash && !window.location.href.includes('access_token'))) {
-          setCurrentView('home');
-        }
+      } else if (path === '/' || path === '/home' || !path) {
+        // Solo resetear si venimos de estados que no son admin
+        setCurrentView((prev) => {
+            if (prev === 'admin' || prev === 'landing') return 'home';
+            return prev;
+        });
       }
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    handleHashChange(); // Check on mount
+    // Escuchar cambios en el historial (botón atrás/adelante)
+    window.addEventListener('popstate', handleNavigation);
+    handleNavigation(); // Inicializar al cargar
 
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [currentView]);
+    // AUTO-LOGIN: Detectar sesión y entrar directo al admin
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+            console.log('-> Sesión confirmada en App.tsx, entrando al Admin...');
+            setCurrentView('admin');
+        }
+    });
+
+    return () => {
+        window.removeEventListener('popstate', handleNavigation);
+        subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -71,7 +100,7 @@ const App: React.FC = () => {
   };
 
   const handleBackToHome = () => {
-    setCurrentView('home');
+    navigate('/', 'home');
     setSelectedServiceId(null);
   };
 
@@ -89,7 +118,7 @@ const App: React.FC = () => {
         <div className="max-w-md bg-white p-10 rounded-3xl shadow-xl shadow-slate-200 border border-slate-100">
            <h1 className="text-2xl font-black text-slate-900 mb-4">¡Ups!</h1>
            <p className="text-slate-600 font-semibold mb-6">No pudimos encontrar la página que buscas. Verifica el dominio o contacta a soporte.</p>
-           <a href="https://desarrollandoando.fun" className="inline-block bg-emerald-600 text-white font-bold px-8 py-3 rounded-2xl">Ir al Inicio</a>
+           <a href="/" className="inline-block bg-emerald-600 text-white font-bold px-8 py-3 rounded-2xl">Ir al Inicio</a>
         </div>
       </div>
     );
@@ -128,10 +157,7 @@ const App: React.FC = () => {
             onBack={handleBackToHome}
           />
         ) : isMainDomain ? (
-          <SaaSLanding onLoginClick={() => {
-            window.location.hash = 'admin';
-            setCurrentView('admin');
-          }} />
+          <SaaSLanding onLoginClick={() => navigate('/admin', 'admin')} />
         ) : (
           <WebsiteContent
             onServiceSelect={handleServiceSelect}

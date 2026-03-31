@@ -14,7 +14,7 @@ import {
     ShieldCheck
 } from 'lucide-react';
 
-export type AdminTab = 'products' | 'offers' | 'packages' | 'landings' | 'media' | 'analytics' | 'widgets' | 'locations' | 'companies' | 'website';
+export type AdminTab = 'products' | 'offers' | 'packages' | 'landings' | 'media' | 'analytics' | 'widgets' | 'locations' | 'companies' | 'website' | 'settings';
 
 interface SidebarProps {
     activeTab: AdminTab;
@@ -34,6 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onLogout, co
         isSuperAdmin && { id: 'companies', label: 'Gestión de Empresas', icon: ShieldCheck },
         { id: 'locations', label: 'Sedes y Ubicaciones', icon: MapPin },
         { id: 'packages', label: 'Paquetes Especiales', icon: FileText },
+        { id: 'settings', label: 'Configuración de Cuenta', icon: Settings },
     ].filter(Boolean) as { id: AdminTab, label: string, icon: any }[];
 
     return (
