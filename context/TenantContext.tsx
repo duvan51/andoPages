@@ -13,6 +13,7 @@ export interface Company {
     template_id?: string;
     config: any;
     status: string;
+    seo_verification_code?: string;
 }
 
 interface TenantContextType {
