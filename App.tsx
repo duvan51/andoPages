@@ -42,11 +42,11 @@ const App: React.FC = () => {
     const handleNavigation = () => {
       const path = window.location.pathname;
       const hash = window.location.hash;
-      console.log('--- NAVEGACIÓN --- Path:', path, 'Hash:', hash);
+
 
       // 1. Detectar si hay un token de Supabase (Siempre viene en el hash)
       if (hash.includes('access_token=')) {
-        console.log('Token detectado en URL, forzando vista ADMIN');
+
         setCurrentView('admin');
         return;
       }
@@ -74,7 +74,7 @@ const App: React.FC = () => {
     // AUTO-LOGIN: Detectar sesión y entrar directo al admin
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-            console.log('-> Sesión confirmada en App.tsx, entrando al Admin...');
+    
             setCurrentView('admin');
         }
     });

@@ -23,15 +23,15 @@ const AdminDashboard: React.FC = () => {
     const [userEmail, setUserEmail] = useState<string | null>(null);
 
     useEffect(() => {
-        console.log('ADMIN DASHBOARD: Componente montado (Esperando sesión...)');
+
         // Listen for Supabase Auth changes (for Google Login)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log('DEBUG AUTH - Evento:', event, 'Sesión:', !!session);
+
             
             if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
                 const email = session.user.email || null;
                 setUserEmail(email);
-                console.log('--- ENTRANDO A SESIÓN --- Email:', email);
+
 
                 // 1. Verificar si es el ÚNICO Super Admin
                 const superAdmins = ['aponteramirezduvan@gmail.com'];
@@ -44,7 +44,7 @@ const AdminDashboard: React.FC = () => {
                     localStorage.setItem('promedid_admin_session', 'active');
                     localStorage.setItem('promedid_admin_role', 'superadmin');
                 } else {
-                    console.log('Buscando permisos en la base de datos para:', email);
+
                     // 2. Verificar Administradores Organizacionales en la tabla companies
                     try {
                         const { data: company, error: dbError } = await supabase
@@ -54,7 +54,7 @@ const AdminDashboard: React.FC = () => {
                             .maybeSingle();
 
                         if (company) {
-                            console.log('Permisos confirmados para la empresa:', company.name);
+
                             setIsSuperAdmin(false);
                             setIsLoggedIn(true);
                             setCurrentCompanyId(company.id);

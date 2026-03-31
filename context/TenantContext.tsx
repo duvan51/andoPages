@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface Company {
@@ -30,6 +30,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
     const [isLoading, setIsLoading] = useState(!previewTenant);
     const [isError, setIsError] = useState(false);
     const [isMainDomain, setIsMainDomain] = useState(false);
+    
+    const identifyingRef = useRef(false);
 
     useEffect(() => {
         if (previewTenant) {
@@ -38,85 +40,60 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
             return;
         }
 
-        const identifyTenant = async () => {
-            console.log('--- DETECCIÓN: Paso 1 (Inicio) ---');
-            setIsLoading(true);
+        const identifyTenant = async (retryCount = 0) => {
+            if (identifyingRef.current && retryCount === 0) return;
+            identifyingRef.current = true;
+
+            if (retryCount === 0) await new Promise(r => setTimeout(r, 100));
+
             const hostname = window.location.hostname;
             const cleanHostname = hostname.replace(/^www\./, '');
-
-            const adminDomains = [
-                'localhost',
-                'admin.' + window.location.hostname.split('.').slice(-2).join('.'),
-                window.location.hostname.split('.').slice(-2).join('.'),
-                'www.' + window.location.hostname.split('.').slice(-2).join('.')
-            ];
-
-            const isMain = adminDomains.includes(hostname) || adminDomains.includes(cleanHostname);
-            console.log('--- DETECCIÓN: Paso 2 (Hostname) ---', hostname, isMain);
+            const adminDomains = ['localhost', 'desarrollandoando.fun'];
+            const isMain = adminDomains.some(d => hostname.includes(d));
 
             try {
+                setIsLoading(true);
                 let data = null;
                 
-                // 1. Dominio Custom o Localhost
-                if (!isMain || hostname === 'localhost') {
-                    console.log('--- DETECCIÓN: Paso 3 (Buscando en DB por dominio) ---');
-                    const { data: customDomainData, error: err1 } = await supabase
+                // 1. Dominio Custom
+                if (!isMain || hostname.includes('localhost')) {
+                    const { data: d, error } = await supabase
                         .from('companies')
                         .select('*')
                         .in('custom_domain', [hostname, cleanHostname])
                         .maybeSingle();
-                    if (err1) console.error('Error en Paso 3:', err1);
-                    data = customDomainData;
+                    if (!error) data = d;
+                    else if (error.message.includes('AbortError')) throw error;
                 }
 
-                // 2. Subdominios
-                if (!data) {
-                    console.log('--- DETECCIÓN: Paso 4 (Buscando por subdominio) ---');
-                    const parts = hostname.split('.');
-                    if (parts.length >= 2 && !isMain) {
-                        const slug = parts[0];
-                        const { data: subdomainData, error: err2 } = await supabase
-                            .from('companies')
-                            .select('*')
-                            .eq('slug', slug)
-                            .maybeSingle();
-                        if (err2) console.error('Error en Paso 4:', err2);
-                        data = subdomainData;
-                    }
-                }
-
-                // 3. Fallback: Path segments
+                // 2. Path Slug (/promedid)
                 if (!data && isMain) {
-                    console.log('--- DETECCIÓN: Paso 5 (Buscando por path slug) ---');
                     const pathSegments = window.location.pathname.split('/').filter(Boolean);
                     if (pathSegments.length > 0) {
                         const pathSlug = pathSegments[0];
-                        const protectedPaths = ['admin', 'login', 'api', 'assets', 'static', 'dashboard', 'home'];
+                        const protectedPaths = ['admin', 'login', 'dashboard', 'api', 'assets', 'static', 'home'];
                         if (!protectedPaths.includes(pathSlug.toLowerCase())) {
-                            const { data: pathData, error: err3 } = await supabase
+                            const { data: d, error } = await supabase
                                 .from('companies')
                                 .select('*')
                                 .eq('slug', pathSlug)
                                 .maybeSingle();
-                            if (err3) console.error('Error en Paso 5:', err3);
-                            data = pathData;
+                            if (error && error.message.includes('AbortError')) throw error;
+                            data = d;
                         }
                     }
                 }
 
-                // 4. Master default
+                // 3. Master default
                 if (!data && isMain) {
-                    console.log('--- DETECCIÓN: Paso 6 (Buscando Master) ---');
-                    const { data: masterData, error: err4 } = await supabase
+                    const { data: d, error } = await supabase
                         .from('companies')
                         .select('*')
                         .eq('slug', 'master')
                         .maybeSingle();
-                    if (err4) console.error('Error en Paso 6:', err4);
-                    data = masterData;
+                    if (error && error.message.includes('AbortError')) throw error;
+                    data = d;
                 }
-
-                console.log('--- DETECCIÓN: FINALIZADA ---', data ? 'Empresa encontrada' : 'No se encontró empresa');
 
                 const pathSegments = window.location.pathname.split('/').filter(Boolean);
                 const isPathTenant = pathSegments.length > 0 && data && data.slug === pathSegments[0];
@@ -131,12 +108,20 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                 } else if (!isMain) {
                     setIsError(true);
                 }
-            } catch (err) {
-                console.error('--- ERROR EN IDENTIFYTENANT ---', err);
-                setIsError(true);
-            } finally {
-                console.log('--- DETECCIÓN: Cargando finalizado (setIsLoading false) ---');
+                
                 setIsLoading(false);
+                identifyingRef.current = false;
+
+            } catch (err: any) {
+                if (err.message?.includes('AbortError') && retryCount < 3) {
+                    identifyingRef.current = false;
+                    setTimeout(() => identifyTenant(retryCount + 1), 200);
+                } else {
+                    console.error('Error fatal en detección:', err);
+                    setIsError(true);
+                    setIsLoading(false);
+                    identifyingRef.current = false;
+                }
             }
         };
 
