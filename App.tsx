@@ -58,12 +58,19 @@ const App: React.FC = () => {
         const slug = path.replace('/landing/', '');
         setLandingSlug(slug);
         setCurrentView('landing');
+      } else if (hash.startsWith('#treatment/')) {
+        const id = hash.replace('#treatment/', '');
+        setSelectedServiceId(id);
+        setCurrentView('service-detail');
       } else if (path === '/' || path === '/home' || !path) {
-        // Solo resetear si venimos de estados que no son admin
-        setCurrentView((prev) => {
-            if (prev === 'admin' || prev === 'landing') return 'home';
+        // ONLY reset to home if the hash is explicitly #home or empty AND 
+        // it wasn't a Supabase auth redirect (which contains access_token)
+        if (hash === '#home' || (!hash && !window.location.href.includes('access_token'))) {
+          setCurrentView((prev) => {
+            if (prev === 'admin' || prev === 'landing' || prev === 'service-detail') return 'home';
             return prev;
-        });
+          });
+        }
       }
     };
 

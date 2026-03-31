@@ -1,7 +1,111 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ELITE_SERVICES } from '../constants/services';
 import { useServices } from '../hooks/useServices';
 import { getWhatsAppLeadUrl } from '../utils/whatsapp';
+import { supabase } from '../lib/supabase';
+import ReviewsSection from './ReviewsSection';
+import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+
+interface GalleryLightboxProps {
+  media: { url: string; type: 'image' | 'video' }[];
+  initialIndex: number;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const GalleryLightbox: React.FC<GalleryLightboxProps> = ({ media, initialIndex, isOpen, onClose }) => {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+  }, [initialIndex, isOpen]);
+
+  if (!isOpen) return null;
+
+  const next = () => setCurrentIndex((prev) => (prev + 1) % media.length);
+  const prev = () => setCurrentIndex((prev) => (prev - 1 + media.length) % media.length);
+
+  const currentMedia = media[currentIndex];
+  
+  const isYoutube = (url: string) => url.includes('youtube.com') || url.includes('youtu.be');
+  const isVimeo = (url: string) => url.includes('vimeo.com');
+
+  const getYoutubeId = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  return (
+    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-xl" onClick={onClose}></div>
+      
+      <div className="relative w-full max-w-6xl aspect-video rounded-3xl overflow-hidden shadow-2xl animate-scale-in">
+        <button 
+          onClick={onClose} 
+          className="absolute top-6 right-6 z-10 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full backdrop-blur-md transition-all active:scale-95"
+        >
+          <X size={24} />
+        </button>
+
+        {media.length > 1 && (
+          <>
+            <button 
+              onClick={prev} 
+              className="absolute left-6 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white p-4 rounded-full backdrop-blur-md transition-all active:scale-95"
+            >
+              <ChevronLeft size={32} />
+            </button>
+            <button 
+              onClick={next} 
+              className="absolute right-6 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white p-4 rounded-full backdrop-blur-md transition-all active:scale-95"
+            >
+              <ChevronRight size={32} />
+            </button>
+          </>
+        )}
+
+        <div className="w-full h-full flex items-center justify-center">
+          {currentMedia.type === 'video' ? (
+            isYoutube(currentMedia.url) ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${getYoutubeId(currentMedia.url)}?autoplay=1`}
+                className="w-full h-full border-none"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            ) : isVimeo(currentMedia.url) ? (
+              <iframe
+                src={`https://player.vimeo.com/video/${currentMedia.url.split('/').pop()}?autoplay=1`}
+                className="w-full h-full border-none"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            ) : (
+              <video 
+                src={currentMedia.url} 
+                controls 
+                autoPlay 
+                className="max-h-full max-w-full object-contain"
+              />
+            )
+          ) : (
+            <img 
+              src={currentMedia.url} 
+              alt={`Gallery item ${currentIndex + 1}`} 
+              className="max-h-full max-w-full object-contain"
+            />
+          )}
+        </div>
+
+        {/* Indicator */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full text-white font-bold text-sm">
+          {currentIndex + 1} / {media.length}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface ServiceLandingProps {
   serviceId: string;
@@ -9,7 +113,31 @@ interface ServiceLandingProps {
 }
 
 const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) => {
-  const { treatments, supplements, loading } = useServices();
+  const { treatments, supplements, loading: servicesLoading } = useServices();
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [lightbox, setLightbox] = useState<{ isOpen: boolean; initialIndex: number }>({ isOpen: false, initialIndex: 0 });
+
+  useEffect(() => {
+    fetchReviews();
+  }, [serviceId]);
+
+  const fetchReviews = async () => {
+    setReviewsLoading(true);
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('treatment_id', serviceId)
+      .eq('active', true)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setReviews(data);
+    }
+    setReviewsLoading(false);
+  };
+
+  const loading = servicesLoading;
 
   // Combinar ambos tipos de datos (Services + Treatments)
   const service = (ELITE_SERVICES.find(s => s.id === serviceId) || treatments.find(t => t.id === serviceId)) as any;
@@ -60,7 +188,9 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
               </p>
               {service.price && (
                 <p className="text-3xl font-bold text-emerald-400 mb-10 flex items-center gap-2">
-                  ${Number(service.price).toLocaleString()}
+                  ${!isNaN(Number(service.price)) 
+                    ? Number(service.price).toLocaleString() 
+                    : service.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
                   {service.packagePrice && <span className="text-sm text-emerald-200/60 font-medium">({service.packagePrice})</span>}
                 </p>
               )}
@@ -84,16 +214,98 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
               </div>
             </div>
 
-            {/* Galería Secundaria */}
-            {service.secondary_images && service.secondary_images.length > 0 && (
-              <div className="grid grid-cols-2 gap-4 animate-scale-in">
-                {service.secondary_images.map((img: string, i: number) => (
-                  <div key={i} className={`rounded-3xl overflow-hidden border border-white/10 shadow-2xl ${i === 2 ? 'col-span-2 aspect-[21/9]' : 'aspect-square'}`}>
-                    <img src={img} alt={`${service.title} perspective ${i + 1}`} className="w-full h-full object-cover transition-transform duration-700 hover:scale-110" />
-                  </div>
-                ))}
+            {/* Galería Secundaria o Imagen Principal */}
+            <div className="animate-scale-in">
+              {(() => {
+                const galleryItems: { url: string; type: 'image' | 'video' }[] = [
+                  { url: service.imageUrl, type: 'image' },
+                  ...(service.secondary_images || []).map((url: string) => ({ url, type: 'image' as const })),
+                  ...(service.videos || []).map((url: string) => ({ url, type: 'video' as const }))
+                ];
+
+                const openGallery = (index: number) => {
+                  setLightbox({ isOpen: true, initialIndex: index });
+                };
+
+                return (
+                  <>
+                    {service.secondary_images && service.secondary_images.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div 
+                          className="col-span-2 rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl aspect-[16/9] mb-2 cursor-pointer group hover:border-emerald-500/50 transition-all"
+                          onClick={() => openGallery(0)}
+                        >
+                          <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                          <div className="absolute inset-0 bg-emerald-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <div className="bg-white/20 backdrop-blur-md p-4 rounded-full text-white">
+                               <ChevronRight size={32} />
+                             </div>
+                          </div>
+                        </div>
+                        
+                        {/* Secondary Thumbnails */}
+                        {galleryItems.slice(1, 3).map((item, i) => (
+                          <div 
+                            key={i} 
+                            className="rounded-2xl overflow-hidden border border-white/10 shadow-xl aspect-square cursor-pointer group relative"
+                            onClick={() => openGallery(i + 1)}
+                          >
+                            {item.type === 'video' ? (
+                              <div className="w-full h-full bg-slate-800 flex items-center justify-center relative">
+                                <Play size={32} className="text-emerald-400 fill-emerald-400" />
+                              </div>
+                            ) : (
+                              <img src={item.url} alt={`Gallery item ${i + 1}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            )}
+                            {i === 1 && galleryItems.length > 3 && (
+                              <div className="absolute inset-0 bg-emerald-950/60 backdrop-blur-sm flex items-center justify-center text-white font-black text-xl">
+                                +{galleryItems.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div 
+                        className="rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl aspect-square max-w-md mx-auto lg:ml-auto cursor-pointer group hover:border-emerald-500/50 transition-all relative"
+                        onClick={() => openGallery(0)}
+                      >
+                        <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-emerald-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <div className="bg-white/20 backdrop-blur-md p-4 rounded-full text-white">
+                               <ChevronRight size={32} />
+                             </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <GalleryLightbox 
+                      isOpen={lightbox.isOpen} 
+                      media={galleryItems} 
+                      initialIndex={lightbox.initialIndex} 
+                      onClose={() => setLightbox({ ...lightbox, isOpen: false })} 
+                    />
+                  </>
+                );
+              })()}
+              
+              {/* Star Rating Summary below images */}
+              <div className="mt-6 flex items-center justify-center lg:justify-end gap-3 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 w-fit ml-auto">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <svg
+                      key={s}
+                      className={`w-5 h-5 ${s <= Math.round(reviews.length > 0 ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 5) ? 'text-emerald-400 fill-emerald-400' : 'text-emerald-950 fill-emerald-950'}`}
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <span className="text-emerald-400 font-bold">{reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : '5.0'}</span>
+                <span className="text-emerald-200/60 text-sm">({reviews.length} opiniones)</span>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
@@ -137,7 +349,15 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
         </div>
       </div>
 
+      {/* Testimonials Section */}
+      <ReviewsSection 
+        treatmentId={serviceId} 
+        reviews={reviews} 
+        onReviewAdded={fetchReviews} 
+      />
+
       {/* Recommended Supplements Strategy Section */}
+
       {recommendedSupplements.length > 0 && (
         <div className="bg-slate-50 py-20 border-t border-slate-100">
           <div className="container mx-auto px-4 md:px-6">

@@ -147,6 +147,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                 price: '',
                                 imageUrl: '',
                                 secondary_images: [],
+                                videos: [],
                                 treatment_benefits: []
                             })}
                             className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg"
@@ -348,6 +349,37 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                             <Plus size={20} />
                                             <span className="text-[8px] font-black uppercase">Subir</span>
                                         </button>
+                                    </div>
+                                </div>
+
+                                {/* Video Gallery */}
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Galería de Videos (URL)</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditingProduct({ ...editingProduct, videos: [...(editingProduct.videos || []), ''] })}
+                                            className="text-emerald-600 font-black text-[10px] uppercase tracking-widest hover:underline"
+                                        >
+                                            + Añadir Video
+                                        </button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {(editingProduct.videos || []).map((video: string, i: number) => (
+                                            <div key={i} className="flex gap-2">
+                                                <input 
+                                                    value={video} 
+                                                    onChange={e => {
+                                                        const newVideos = [...editingProduct.videos];
+                                                        newVideos[i] = e.target.value;
+                                                        setEditingProduct({ ...editingProduct, videos: newVideos });
+                                                    }} 
+                                                    className="flex-grow bg-slate-50 border-none rounded-xl p-3 text-xs font-bold focus:ring-2 focus:ring-emerald-500/10" 
+                                                    placeholder="URL del video (YouTube, MP4, etc.)..." 
+                                                />
+                                                <button type="button" onClick={() => setEditingProduct({ ...editingProduct, videos: editingProduct.videos.filter((_: any, idx: number) => idx !== i) })} className="p-2 text-slate-300 hover:text-red-500 transition-colors">✕</button>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>

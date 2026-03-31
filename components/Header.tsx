@@ -24,7 +24,6 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onServicesClick, onTreatme
 
   const navLinks = [
     { name: 'Inicio', href: '#home', action: onHomeClick },
-    { name: isFashion ? 'Colecciones' : 'Servicios', href: isFashion ? '#colecciones' : '#servicios', action: onServicesClick },
     { name: isFashion ? 'Lookbook' : 'Tratamientos', href: isFashion ? '#lookbook' : '#tratamientos', action: onTreatmentsClick },
     ...(!isFashion ? [
       { name: 'Por qué PROMEDID', href: '#confianza' },
@@ -57,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onServicesClick, onTreatme
               key={link.name}
               href={link.href}
               onClick={(e) => {
-                if (link.name === 'Inicio' || link.name === 'Servicios' || link.name === 'Tratamientos' || isFashion) {
+              if (link.name === 'Inicio' || link.name === 'Tratamientos' || isFashion) {
                   // For simplicity in this demo, let them scroll normal if not handling complex SPA actions
                   if (link.action) {
                     e.preventDefault();

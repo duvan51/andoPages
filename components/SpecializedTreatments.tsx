@@ -70,18 +70,22 @@ const SpecializedTreatments: React.FC<SpecializedTreatmentsProps> = ({ onService
         {treatments.slice(0, 6).map((t, i) => (
           <div
             key={i}
-            className="group p-8 rounded-3xl bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all duration-300 cursor-pointer"
+            className="group p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all duration-300 cursor-pointer flex flex-col h-full"
             onClick={() => onServiceSelect(t.id)}
           >
-            <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-bold rounded-full mb-4 uppercase tracking-wider">
+            <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-bold rounded-full mb-4 uppercase tracking-wider w-fit">
               {t.tag || 'Destacado'}
             </span>
-            <h4 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-emerald-600 transition-colors">
+            <h4 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">
               {t.title}
             </h4>
-            <p className="text-slate-500 leading-relaxed text-sm">
+            <p className="text-slate-500 leading-relaxed text-sm line-clamp-3 mb-4 flex-grow">
               {t.description || 'Consulta los detalles de este tratamiento avanzado.'}
             </p>
+            <span className="text-emerald-600 text-xs font-bold hover:underline flex items-center gap-1">
+              Ver más
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path></svg>
+            </span>
           </div>
         ))}
       </div>

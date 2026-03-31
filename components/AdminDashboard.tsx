@@ -11,6 +11,7 @@ import CompanyManager from './admin/sections/CompanyManager';
 import LocationsManager from './admin/sections/Locations';
 import BundlesManager from './admin/sections/Bundles';
 import AdminAuth from './admin/shared/AdminAuth';
+import ReviewsManager from './admin/sections/ReviewsManager';
 import { AdminTab } from './admin/layout/Sidebar';
 
 const AdminDashboard: React.FC = () => {
@@ -92,6 +93,11 @@ const AdminDashboard: React.FC = () => {
         return () => subscription.unsubscribe();
     }, []);
 
+    const handleCompanySelect = (id: string) => {
+        setCurrentCompanyId(id);
+        localStorage.setItem('promedid_admin_company', id);
+    };
+
     useEffect(() => {
         const fetchManagedCompany = async () => {
             if (!currentCompanyId) return;
@@ -114,15 +120,23 @@ const AdminDashboard: React.FC = () => {
         }
     }, [isLoggedIn, currentCompanyId]);
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        // Manual login logic (optional)
-    };
-
-    const handleRegister = async (e: React.FormEvent) => {
-        e.preventDefault();
-        // Manual register logic (optional)
-    };
+    // Auto-select first company for Super Admin if none selected
+    useEffect(() => {
+        const autoSelectFirstCompany = async () => {
+            if (isLoggedIn && isSuperAdmin && !currentCompanyId) {
+                const { data: companies } = await supabase
+                    .from('companies')
+                    .select('id')
+                    .order('created_at', { ascending: true })
+                    .limit(1);
+                
+                if (companies && companies.length > 0) {
+                    handleCompanySelect(companies[0].id);
+                }
+            }
+        };
+        autoSelectFirstCompany();
+    }, [isLoggedIn, isSuperAdmin, currentCompanyId]);
 
     const handleGoogleLogin = async () => {
         try {
@@ -139,10 +153,90 @@ const AdminDashboard: React.FC = () => {
                 }
             });
             if (error) throw error;
-        } catch (error: any) {
-            setError(error.message);
+        } catch (err: any) {
+            setError(err.message || 'Error al iniciar sesión con Google.');
         }
     };
+
+    const handleLogin = async (email: string, pass: string, remember: boolean) => {
+        // 1. Master Login for Super Admin
+        if (email === 'aponteramirezduvan@gmail.com' && pass === '000000') {
+            setIsSuperAdmin(true);
+            setIsLoggedIn(true);
+            if (remember) {
+                localStorage.setItem('promedid_admin_session', 'active');
+                localStorage.setItem('promedid_admin_role', 'superadmin');
+            }
+            
+            // Try to auto-select ProMedid or first company
+            const { data: promedid } = await supabase
+                .from('companies')
+                .select('id')
+                .eq('slug', 'promedid')
+                .single();
+            
+            if (promedid) {
+                handleCompanySelect(promedid.id);
+            } else {
+                const { data: first } = await supabase
+                    .from('companies')
+                    .select('id')
+                    .limit(1);
+                if (first && first.length > 0) handleCompanySelect(first[0].id);
+            }
+
+            setError('');
+            return;
+        }
+
+        // 2. Tenant Login
+        try {
+            const { data, error } = await supabase
+                .from('companies')
+                .select('id, admin_email, admin_password')
+                .eq('admin_email', email)
+                .eq('admin_password', pass)
+                .single();
+
+            if (data) {
+                setIsSuperAdmin(false);
+                setIsLoggedIn(true);
+                setCurrentCompanyId(data.id);
+
+                if (remember) {
+                    localStorage.setItem('promedid_admin_session', 'active');
+                    localStorage.setItem('promedid_admin_role', 'tenant');
+                    localStorage.setItem('promedid_admin_company', data.id);
+                }
+                setError('');
+            } else {
+                setError('Credenciales incorrectas.');
+            }
+        } catch (err) {
+            setError('Error de conexión.');
+        }
+    };
+
+    const handleRegister = async (email: string, pass: string) => {
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password: pass,
+                options: {
+                    emailRedirectTo: `${window.location.origin}${window.location.pathname}#admin`
+                }
+            });
+
+            if (error) throw error;
+
+            if (data?.user) {
+                alert('Registro exitoso. Por favor verifica tu correo electrónico para activar tu cuenta.');
+            }
+        } catch (err: any) {
+            setError(err.message || 'Error al registrar usuario.');
+        }
+    };
+
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -189,10 +283,10 @@ const AdminDashboard: React.FC = () => {
             {activeTab === 'products' && <ProductsManager companyId={currentCompanyId} />}
             {activeTab === 'packages' && <BundlesManager companyId={currentCompanyId} />}
             {activeTab === 'offers' && <BundlesManager companyId={currentCompanyId} />}
-            
+            {activeTab === 'reviews' && <ReviewsManager companyId={currentCompanyId} />}
             {activeTab === 'companies' && isSuperAdmin && (
                 <CompanyManager
-                    onSelectCompany={setCurrentCompanyId}
+                    onSelectCompany={handleCompanySelect}
                     currentCompanyId={currentCompanyId}
                 />
             )}
