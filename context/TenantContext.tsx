@@ -44,15 +44,20 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
             if (identifyingRef.current && retryCount === 0) return;
             identifyingRef.current = true;
 
-            if (retryCount === 0) await new Promise(r => setTimeout(r, 100));
-
             const hostname = window.location.hostname;
             const cleanHostname = hostname.replace(/^www\./, '');
             const adminDomains = ['localhost', 'desarrollandoando.fun'];
             const isMain = adminDomains.some(d => hostname.includes(d));
 
+            // Notificamos de inmediato si estamos en el dominio principal
+            setIsMainDomain(isMain);
+
+            if (retryCount === 0) await new Promise(r => setTimeout(r, 100));
+
             try {
-                setIsLoading(true);
+                // Solo activamos cargando en el primer intento para evitar parpadeos
+                if (retryCount === 0) setIsLoading(true);
+                
                 let data = null;
                 
                 // 1. Dominio Custom
@@ -62,45 +67,44 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                         .select('*')
                         .in('custom_domain', [hostname, cleanHostname])
                         .maybeSingle();
-                    if (!error) data = d;
-                    else if (error.message.includes('AbortError')) throw error;
+                    if (error) throw error; 
+                    data = d;
                 }
 
-                // 2. Path Slug (/promedid)
+                // 2. Por Path Slug (/promedid)
                 if (!data && isMain) {
                     const pathSegments = window.location.pathname.split('/').filter(Boolean);
                     if (pathSegments.length > 0) {
-                        const pathSlug = pathSegments[0];
+                        const pathSlug = pathSegments[0].toLowerCase();
                         const protectedPaths = ['admin', 'login', 'dashboard', 'api', 'assets', 'static', 'home'];
-                        if (!protectedPaths.includes(pathSlug.toLowerCase())) {
+                        if (!protectedPaths.includes(pathSlug)) {
                             const { data: d, error } = await supabase
                                 .from('companies')
                                 .select('*')
-                                .eq('slug', pathSlug)
+                                .ilike('slug', pathSlug)
                                 .maybeSingle();
-                            if (error && error.message.includes('AbortError')) throw error;
+                            if (error) throw error;
                             data = d;
                         }
                     }
                 }
 
-                // 3. Master default
+                // 3. Master default por defecto
                 if (!data && isMain) {
                     const { data: d, error } = await supabase
                         .from('companies')
                         .select('*')
                         .eq('slug', 'master')
                         .maybeSingle();
-                    if (error && error.message.includes('AbortError')) throw error;
+                    if (error) throw error;
                     data = d;
                 }
 
                 const pathSegments = window.location.pathname.split('/').filter(Boolean);
-                const isPathTenant = pathSegments.length > 0 && data && data.slug === pathSegments[0];
+                const isPathTenant = pathSegments.length > 0 && data && data.slug.toLowerCase() === pathSegments[0].toLowerCase();
                 const isMatchedByCustomDomain = data && (data.custom_domain === hostname || data.custom_domain === cleanHostname);
-                const isShowingSaaSLanding = isMain && !isPathTenant && !isMatchedByCustomDomain;
                 
-                setIsMainDomain(isShowingSaaSLanding);
+                setIsMainDomain(isMain && !isPathTenant && !isMatchedByCustomDomain);
 
                 if (data) {
                     setTenant(data);
@@ -110,15 +114,32 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                 }
                 
                 setIsLoading(false);
+                setIsError(false);
                 identifyingRef.current = false;
 
             } catch (err: any) {
-                if (err.message?.includes('AbortError') && retryCount < 3) {
-                    identifyingRef.current = false;
-                    setTimeout(() => identifyTenant(retryCount + 1), 200);
+                const errorMsg = err.message || String(err);
+                const isAbort = errorMsg.includes('AbortError') || errorMsg.includes('signal is aborted');
+
+                if (isAbort) {
+                    if (retryCount < 3) {
+                        identifyingRef.current = false;
+                        setTimeout(() => identifyTenant(retryCount + 1), 200);
+                    } else {
+                        // Si después de 3 intentos sigue abortando, pero es dominio principal,
+                        // simplemente dejamos de intentar y mostramos el SaaSLanding.
+                        if (isMain) {
+                            setIsMainDomain(true);
+                            setIsError(false);
+                        } else {
+                            setIsError(true);
+                        }
+                        setIsLoading(false);
+                        identifyingRef.current = false;
+                    }
                 } else {
-                    console.error('Error fatal en detección:', err);
-                    setIsError(true);
+                    console.error('Error no recuperable en detección:', err);
+                    if (!isMain) setIsError(true);
                     setIsLoading(false);
                     identifyingRef.current = false;
                 }
