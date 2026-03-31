@@ -71,11 +71,14 @@ const App: React.FC = () => {
     window.addEventListener('popstate', handleNavigation);
     handleNavigation(); // Inicializar al cargar
 
-    // AUTO-LOGIN: Detectar sesión y entrar directo al admin
+    // AUTO-LOGIN: Detectar sesión y entrar al admin SOLO si estamos en rutas de administración o el home principal
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-    
-            setCurrentView('admin');
+            const path = window.location.pathname;
+            // Si estamos en el home principal o intentando entrar al login, entramos directo al admin
+            if (path === '/' || path === '/admin' || path === '/login') {
+                setCurrentView('admin');
+            }
         }
     });
 
