@@ -55,6 +55,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
     });
 
     const [customDomain, setCustomDomain] = useState('');
+    const [seoVerificationCode, setSeoVerificationCode] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
     const [activeSection, setActiveSection] = useState<'hero' | 'footer' | 'contact' | 'advanced'>('hero');
@@ -69,12 +70,13 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
         setIsLoading(true);
         const { data, error } = await supabase
             .from('companies')
-            .select('config, name, custom_domain')
+            .select('config, name, custom_domain, seo_verification_code')
             .eq('id', companyId)
             .single();
 
         if (!error && data) {
             if (data.custom_domain) setCustomDomain(data.custom_domain);
+            if (data.seo_verification_code) setSeoVerificationCode(data.seo_verification_code);
             if (data.config && Object.keys(data.config).length > 0) {
                 // Merge with defaults to ensure all fields exist
                 setConfig({
@@ -95,7 +97,8 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
             .from('companies')
             .update({
                 config,
-                custom_domain: savedDomain
+                custom_domain: savedDomain,
+                seo_verification_code: seoVerificationCode?.trim() || null
             })
             .eq('id', companyId);
 
@@ -388,13 +391,37 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                             <div className="p-4 bg-white/50 rounded-2xl border border-emerald-100/50">
                                                 <h5 className="text-[10px] font-black text-emerald-900 uppercase tracking-widest mb-3 flex items-center gap-2">
                                                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                                                    Configuración DNS
+                                                    Paso 1: Configuración DNS (Hostinger/GoDaddy)
                                                 </h5>
-                                                <p className="text-[11px] text-emerald-800/60 leading-normal">
-                                                    Para activar tu dominio, crea un registro <code className="font-bold">CNAME</code> apuntando a:
+                                                <p className="text-[11px] text-emerald-800/60 leading-normal space-y-2">
+                                                    1. Crea un registro <code className="bg-emerald-100 px-1 rounded font-bold text-emerald-900">CNAME</code> con nombre <code className="font-bold text-emerald-900">www</code> apuntando a:
                                                     <br />
-                                                    <span className="text-emerald-900 font-bold">{window.location.hostname.split('.').slice(-2).join('.')}</span>
+                                                    <span className="text-emerald-900 font-bold block mt-1">{window.location.hostname.replace(/^www\./, '')}</span>
+                                                    <br />
+                                                    2. Crea un registro <code className="bg-emerald-100 px-1 rounded font-bold text-emerald-900">A</code> con nombre <code className="font-bold text-emerald-900">@</code> apuntando a la IP de este servidor.
                                                 </p>
+                                            </div>
+
+                                            <div className="space-y-2 pt-4 border-t border-emerald-100/50">
+                                                <h5 className="text-[10px] font-black text-emerald-900 uppercase tracking-widest mb-3">
+                                                    Paso 2: Verificación de Google SEO
+                                                </h5>
+                                                <div className="space-y-4">
+                                                    <p className="text-[11px] text-emerald-800/60 leading-normal">
+                                                        Pega aquí el código de verificación de <span className="font-bold">Google Search Console</span> (Meta Tag):
+                                                    </p>
+                                                    <input
+                                                        value={seoVerificationCode}
+                                                        onChange={e => setSeoVerificationCode(e.target.value)}
+                                                        className="w-full bg-white border-2 border-emerald-100 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all placeholder:text-emerald-900/20"
+                                                        placeholder="google-site-verification=..."
+                                                    />
+                                                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                                                        <p className="text-[10px] text-amber-800 font-medium">
+                                                            <strong>Tip:</strong> Ve a Search Console, añade tu propiedad y elige el método "Etiqueta HTML". Copia el valor de <code>content="..."</code> y pégalo aquí.
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
