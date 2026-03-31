@@ -92,6 +92,27 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, [currentView]);
 
+  // --- SEO DINÁMICO (Modo SaaS) ---
+  useEffect(() => {
+    if (tenant) {
+      // 1. Cambiar el título de la pestaña dinámicamente
+      document.title = `${tenant.name.toUpperCase()} | Plataforma Oficial`;
+
+      // 2. Inyectar Meta Tag de Google SOLO si es PROMEDID
+      if (tenant.slug.toLowerCase() === 'promedid') {
+        let metaTag = document.querySelector('meta[name="google-site-verification"]');
+        if (!metaTag) {
+          metaTag = document.createElement('meta');
+          metaTag.setAttribute('name', 'google-site-verification');
+          metaTag.setAttribute('content', 'DoBSnWB4rS-GWIN7lLgFMAueokyjkc4e6kFBfvBxmkY');
+          document.head.appendChild(metaTag);
+        }
+      }
+    } else {
+      document.title = "AndoPages | SaaS Inteligente";
+    }
+  }, [tenant]);
+
   const handleServiceSelect = (id: string) => {
     setSelectedServiceId(id);
     setCurrentView('service-detail');
