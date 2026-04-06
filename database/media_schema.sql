@@ -21,6 +21,6 @@ USING (true);
 -- Admin access for storage management
 CREATE POLICY "Allow all access to media for admins" 
 ON media FOR ALL 
-TO anon 
+TO public 
 USING (true) 
 WITH CHECK (true);

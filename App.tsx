@@ -103,7 +103,20 @@ const App: React.FC = () => {
   useEffect(() => {
     if (tenant) {
       // 1. Título dinámico por empresa
-      document.title = `${tenant.name.toUpperCase()} | Plataforma Oficial`;
+      document.title = tenant.config?.metadata?.title || `${tenant.name.toUpperCase()} | Plataforma Oficial`;
+
+      // 1.5. Configurar Favicon dinámico
+      let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      if (tenant.config?.metadata?.faviconUrl) {
+         link.href = tenant.config.metadata.faviconUrl;
+      } else {
+         link.href = '/vite.svg'; // Default if none is set
+      }
 
       // 2. Inyectar Meta Tag de Google si el cliente tiene un código guardado
       if (tenant.seo_verification_code) {

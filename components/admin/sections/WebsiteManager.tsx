@@ -51,14 +51,18 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
             phone: '',
             address: ''
         },
+        metadata: {
+            title: '',
+            faviconUrl: ''
+        },
         showLocations: true
     });
 
     const [customDomain, setCustomDomain] = useState('');
     const [seoVerificationCode, setSeoVerificationCode] = useState('');
     const [isSaving, setIsSaving] = useState(false);
-    const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
-    const [activeSection, setActiveSection] = useState<'hero' | 'footer' | 'contact' | 'advanced'>('hero');
+    const [mediaPickerConfig, setMediaPickerConfig] = useState<{isOpen: boolean, target: '' | 'hero' | 'favicon'}>({ isOpen: false, target: '' });
+    const [activeSection, setActiveSection] = useState<'hero' | 'footer' | 'contact' | 'advanced' | 'seo'>('hero');
 
     useEffect(() => {
         if (companyId) {
@@ -83,6 +87,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                     hero: { ...config.hero, ...(data.config.hero || {}) },
                     footer: { ...config.footer, ...(data.config.footer || {}) },
                     contact: { ...config.contact, ...(data.config.contact || {}) },
+                    metadata: { ...config.metadata, ...(data.config.metadata || {}) },
                     showLocations: data.config.showLocations !== undefined ? data.config.showLocations : true
                 });
             }
@@ -164,6 +169,13 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                         <LinkIcon size={18} />
                         Dominio Personalizado
                     </button>
+                    <button
+                        onClick={() => setActiveSection('seo')}
+                        className={`w-full flex items-center gap-3 px-4 py-4 rounded-3xl transition-all font-black text-xs uppercase tracking-widest ${activeSection === 'seo' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/20' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        <Type size={18} />
+                        SEO y Pestaña
+                    </button>
                     <div className="pt-4 mt-4 border-t border-slate-100">
                         <label className="flex items-center justify-between p-4 bg-white rounded-3xl border border-slate-100 cursor-pointer hover:border-emerald-500/30 transition-all">
                             <div className="flex items-center gap-3">
@@ -225,13 +237,13 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                             <>
                                                 <img src={config.hero.imageUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Hero Preview" />
                                                 <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                                                    <button onClick={() => setIsMediaPickerOpen(true)} className="p-3 bg-white text-slate-900 rounded-2xl shadow-xl hover:scale-110 transition-transform"><Upload size={20} /></button>
+                                                    <button onClick={() => setMediaPickerConfig({ isOpen: true, target: 'hero' })} className="p-3 bg-white text-slate-900 rounded-2xl shadow-xl hover:scale-110 transition-transform"><Upload size={20} /></button>
                                                     <button onClick={() => setConfig({ ...config, hero: { ...config.hero, imageUrl: '' } })} className="p-3 bg-red-600 text-white rounded-2xl shadow-xl hover:scale-110 transition-transform"><CloseIcon size={20} /></button>
                                                 </div>
                                             </>
                                         ) : (
                                             <button
-                                                onClick={() => setIsMediaPickerOpen(true)}
+                                                onClick={() => setMediaPickerConfig({ isOpen: true, target: 'hero' })}
                                                 className="flex flex-col items-center gap-3 text-slate-400 hover:text-emerald-600 transition-colors"
                                             >
                                                 <ImageIcon size={48} strokeWidth={1.5} />
@@ -429,16 +441,80 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                             </div>
                         </div>
                     )}
+
+                    {activeSection === 'seo' && (
+                        <div className="space-y-8 animate-fade-in">
+                            <div className="bg-emerald-50 rounded-[2rem] p-8 border border-emerald-100">
+                                <div className="flex items-start gap-4">
+                                    <div className="p-3 bg-emerald-600 text-white rounded-2xl shadow-lg">
+                                        <Type size={24} />
+                                    </div>
+                                    <div className="w-full">
+                                        <h4 className="text-lg font-bold text-emerald-900 mb-2">Personalización de Pestaña (SEO)</h4>
+                                        <p className="text-emerald-700/70 text-sm leading-relaxed mb-6">
+                                            Edita cómo se ve tu página en las pestañas del navegador y al compartirse.
+                                        </p>
+
+                                        <div className="grid md:grid-cols-2 gap-8">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-emerald-900/40 uppercase tracking-widest ml-1">Título de la Web</label>
+                                                <input
+                                                    value={config.metadata?.title || ''}
+                                                    onChange={e => setConfig({ ...config, metadata: { ...config.metadata, title: e.target.value } })}
+                                                    className="w-full bg-white border-2 border-emerald-100 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all placeholder:text-emerald-900/20"
+                                                    placeholder="Ej: Mi Empresa | Los Mejores Servicios"
+                                                />
+                                                <p className="text-[10px] text-emerald-800/60 mt-2 px-2">
+                                                    Si lo dejas en blanco, se usará el nombre de tu empresa.
+                                                </p>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-emerald-900/40 uppercase tracking-widest ml-1">Icono de Pestaña (Favicon)</label>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-16 h-16 rounded-2xl bg-white border-2 border-emerald-100 flex items-center justify-center overflow-hidden flex-shrink-0 relative group">
+                                                        {config.metadata?.faviconUrl ? (
+                                                            <>
+                                                                <img src={config.metadata.faviconUrl} alt="Favicon" className="w-full h-full object-cover" />
+                                                                <button onClick={() => setConfig({ ...config, metadata: { ...config.metadata, faviconUrl: '' } })} className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <CloseIcon size={16} />
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <ImageIcon className="text-emerald-900/20" size={24} />
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setMediaPickerConfig({ isOpen: true, target: 'favicon' })}
+                                                        className="px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-bold rounded-xl transition-colors"
+                                                    >
+                                                        Elegir Icono
+                                                    </button>
+                                                </div>
+                                                <p className="text-[10px] text-emerald-800/60 mt-2 px-2">
+                                                    Se recomienda una imagen cuadrada.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
             <MediaPicker
-                isOpen={isMediaPickerOpen}
-                onClose={() => setIsMediaPickerOpen(false)}
+                isOpen={mediaPickerConfig.isOpen}
+                onClose={() => setMediaPickerConfig({ isOpen: false, target: '' })}
                 companyId={companyId}
                 onSelect={(url) => {
-                    setConfig({ ...config, hero: { ...config.hero, imageUrl: url } });
-                    setIsMediaPickerOpen(false);
+                    if (mediaPickerConfig.target === 'hero') {
+                        setConfig({ ...config, hero: { ...config.hero, imageUrl: url } });
+                    } else if (mediaPickerConfig.target === 'favicon') {
+                        setConfig({ ...config, metadata: { ...config.metadata, faviconUrl: url } });
+                    }
+                    setMediaPickerConfig({ isOpen: false, target: '' });
                 }}
             />
         </div>
