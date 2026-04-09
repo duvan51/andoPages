@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import ContactFormV2 from './ContactFormV2';
+import { formatPriceCOP } from '../utils/format';
 
 interface LandingPageProps {
     slug?: string;
@@ -729,7 +730,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                         <div className={cn("mb-4 md:mb-8")}>
                                             <h3 className={cn("text-sm md:text-xl font-black text-slate-900 mb-1 md:mb-2 line-clamp-1")}>{plan.name}</h3>
                                             <div className={cn("flex items-baseline gap-0.5 md:gap-1")}>
-                                                <span className={cn("text-xl md:text-4xl font-black text-slate-900")}>${plan.price}</span>
+                                                <span className={cn("text-xl md:text-4xl font-black text-slate-900")}>{formatPriceCOP(plan.price)}</span>
                                                 <span className={cn("text-slate-400 font-bold text-[8px] md:text-sm")}>/{plan.period || 'sesión'}</span>
                                             </div>
                                         </div>

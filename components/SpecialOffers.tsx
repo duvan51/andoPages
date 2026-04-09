@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useTenant } from '../hooks/useTenant';
 import { Tag, Clock, ArrowRight, Sparkles } from 'lucide-react';
 import { MOCK_OFFERS } from '../constants/mockData';
+import { formatPriceCOP } from '../utils/format';
 
 interface Bundle {
     id: string;
@@ -111,11 +112,11 @@ const SpecialOffers: React.FC = () => {
                                     <div>
                                         <div className="flex items-baseline gap-3">
                                             <span className={`text-4xl font-black ${isFashion ? 'text-slate-900' : 'text-emerald-600'}`}>
-                                                ${Number(offer.bundle_price).toLocaleString()}
+                                                {formatPriceCOP(offer.bundle_price)}
                                             </span>
                                             {offer.original_total && (
                                                 <span className="text-lg font-bold text-slate-300 line-through">
-                                                    ${Number(offer.original_total).toLocaleString()}
+                                                    {formatPriceCOP(offer.original_total)}
                                                 </span>
                                             )}
                                         </div>

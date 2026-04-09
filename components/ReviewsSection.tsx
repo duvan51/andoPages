@@ -92,7 +92,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ treatmentId, reviews, o
               <div className="space-y-3 mb-10">
                 {ratingDistribution.map((rate) => (
                   <div key={rate.stars} className="flex items-center gap-3 text-sm">
-                    <span className="w-12 text-slate-600 font-medium whitespace-nowrap">{rate.stars} estrellas</span>
+                    <span className="w-20 md:w-24 shrink-0 text-slate-600 font-medium whitespace-nowrap">{rate.stars} estrellas</span>
                     <div className="flex-grow h-1.5 bg-slate-100 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-emerald-500 rounded-full" 

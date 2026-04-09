@@ -15,7 +15,8 @@ import {
     Layers,
     Image as ImageIcon,
     Upload,
-    X as CloseIcon
+    X as CloseIcon,
+    AlertTriangle
 } from 'lucide-react';
 import MediaPicker from '../shared/MediaPicker';
 
@@ -34,12 +35,19 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
     const [newCategoryName, setNewCategoryName] = useState('');
     const [isAddingCategory, setIsAddingCategory] = useState(false);
     const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
-    const [pickingFor, setPickingFor] = useState<{ type: 'primary' | 'secondary', index?: number } | null>(null);
+    const [pickingFor, setPickingFor] = useState<{ type: 'primary' | 'secondary' | 'video', index?: number } | null>(null);
+    const [productToDelete, setProductToDelete] = useState<{ id: string, title: string } | null>(null);
+    
+    // Global Tags Management
+    const [globalTags, setGlobalTags] = useState<any[]>([]);
+    const [isAddingTag, setIsAddingTag] = useState(false);
+    const [newTagName, setNewTagName] = useState('');
 
     useEffect(() => {
         if (companyId) {
             fetchProducts();
             fetchCategories();
+            fetchGlobalTags();
         }
     }, [companyId]);
 
@@ -76,6 +84,32 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
             setCategories([...categories, data]);
             setNewCategoryName('');
             setIsAddingCategory(false);
+        }
+    };
+
+    const fetchGlobalTags = async () => {
+        const { data, error } = await supabase
+            .from('tags')
+            .select('*')
+            .eq('company_id', companyId)
+            .order('name', { ascending: true });
+
+        if (!error && data) setGlobalTags(data);
+    };
+
+    const handleAddGlobalTag = async () => {
+        if (!newTagName.trim()) return;
+
+        const { data, error } = await supabase
+            .from('tags')
+            .insert({ name: newTagName.trim(), company_id: companyId })
+            .select()
+            .single();
+
+        if (!error && data) {
+            setGlobalTags([...globalTags, data]);
+            setNewTagName('');
+            // setIsAddingTag(false); // keep modal open to add more easily
         }
     };
 
@@ -120,6 +154,24 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
         }
     };
 
+    const handleConfirmDelete = async () => {
+        if (!productToDelete) return;
+
+        try {
+            // Limpiar relaciones si las hay
+            await supabase.from('treatment_benefits').delete().eq('treatment_id', productToDelete.id);
+            
+            const { error } = await supabase.from('treatments').delete().eq('id', productToDelete.id);
+            if (error) throw error;
+            
+            fetchProducts();
+            setProductToDelete(null);
+        } catch (err: any) {
+            alert('Error al eliminar el producto: ' + err.message);
+            setProductToDelete(null);
+        }
+    };
+
     const filteredProducts = products.filter(p =>
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.category?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -131,13 +183,20 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                 title="Productos y Servicios"
                 subtitle="Gestiona tu catálogo de tratamientos y servicios especializados"
                 rightElement={
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 justify-end">
                         <button
                             onClick={() => setIsAddingCategory(true)}
                             className="flex items-center gap-2 bg-white border border-slate-100 text-slate-600 px-6 py-3 rounded-2xl font-bold shadow-sm hover:bg-slate-50 transition-all"
                         >
                             <Layers size={20} />
                             Categorías
+                        </button>
+                        <button
+                            onClick={() => setIsAddingTag(true)}
+                            className="flex items-center gap-2 bg-white border border-slate-100 text-slate-600 px-6 py-3 rounded-2xl font-bold shadow-sm hover:bg-slate-50 transition-all"
+                        >
+                            <Tag size={20} />
+                            Etiquetas
                         </button>
                         <button
                             onClick={() => setEditingProduct({
@@ -148,7 +207,10 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                 imageUrl: '',
                                 secondary_images: [],
                                 videos: [],
-                                treatment_benefits: []
+                                treatment_benefits: [],
+                                components: [],
+                                tags: [],
+                                subtags: []
                             })}
                             className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg"
                         >
@@ -199,7 +261,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                         </span>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button onClick={() => setEditingProduct(p)} className="p-2 text-slate-400 hover:text-emerald-600"><Edit2 size={16} /></button>
-                                            <button className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={16} /></button>
+                                            <button onClick={() => setProductToDelete({ id: p.id, title: p.title })} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={16} /></button>
                                         </div>
                                     </div>
                                     <h3 className="text-lg font-black text-slate-900 leading-tight mb-1">{p.title}</h3>
@@ -270,6 +332,85 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                 <div className="space-y-1.5 col-span-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Descripción Corta</label>
                                     <textarea value={editingProduct.description} onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none h-20 resize-none focus:ring-2 focus:ring-emerald-500/10 transition-all" placeholder="Describe brevemente el producto..." />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5 col-span-2 md:col-span-1">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Etiquetas (Principal)</label>
+                                    <div className="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-2xl border-none min-h-[56px] items-center">
+                                        {(editingProduct.tags || []).map((tag: string, i: number) => (
+                                            <span key={i} className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 group uppercase tracking-wide">
+                                                {tag}
+                                                <button type="button" onClick={() => setEditingProduct({ ...editingProduct, tags: editingProduct.tags.filter((_: any, idx: number) => idx !== i) })} className="hover:text-red-500 opacity-50 group-hover:opacity-100"><CloseIcon size={12} /></button>
+                                            </span>
+                                        ))}
+                                        <input 
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter' || e.key === ',') {
+                                                    e.preventDefault();
+                                                    const val = e.currentTarget.value.trim().replace(',', '');
+                                                    if (val && !(editingProduct.tags || []).includes(val)) {
+                                                        setEditingProduct({ ...editingProduct, tags: [...(editingProduct.tags || []), val] });
+                                                    }
+                                                    e.currentTarget.value = '';
+                                                }
+                                            }}
+                                            placeholder={(editingProduct.tags || []).length === 0 ? "Añadir etiqueta + Enter..." : "Agregar más..."}
+                                            className="bg-transparent border-none outline-none text-sm font-bold flex-grow min-w-[120px]" 
+                                        />
+                                    </div>
+                                    {/* Sugerencias de Etiquetas Globales */}
+                                    <div className="mt-2 flex flex-wrap gap-1.5 pl-1">
+                                        {globalTags.filter(t => !(editingProduct.tags || []).includes(t.name)).map(t => (
+                                            <button 
+                                                key={t.id} 
+                                                type="button" 
+                                                onClick={() => setEditingProduct({ ...editingProduct, tags: [...(editingProduct.tags || []), t.name] })}
+                                                className="text-[10px] px-2 py-1 bg-white border border-emerald-100 text-emerald-600 font-bold rounded-lg hover:bg-emerald-50 hover:border-emerald-200 transition-colors"
+                                            >
+                                                + {t.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5 col-span-2 md:col-span-1">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Subetiquetas (Filtros)</label>
+                                    <div className="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-2xl border-none min-h-[56px] items-center">
+                                        {(editingProduct.subtags || []).map((tag: string, i: number) => (
+                                            <span key={i} className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 group uppercase tracking-wide">
+                                                {tag}
+                                                <button type="button" onClick={() => setEditingProduct({ ...editingProduct, subtags: editingProduct.subtags.filter((_: any, idx: number) => idx !== i) })} className="hover:text-red-500 opacity-50 group-hover:opacity-100"><CloseIcon size={12} /></button>
+                                            </span>
+                                        ))}
+                                        <input 
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter' || e.key === ',') {
+                                                    e.preventDefault();
+                                                    const val = e.currentTarget.value.trim().replace(',', '');
+                                                    if (val && !(editingProduct.subtags || []).includes(val)) {
+                                                        setEditingProduct({ ...editingProduct, subtags: [...(editingProduct.subtags || []), val] });
+                                                    }
+                                                    e.currentTarget.value = '';
+                                                }
+                                            }}
+                                            placeholder={(editingProduct.subtags || []).length === 0 ? "Añadir subetiqueta + Enter..." : "Agregar más..."}
+                                            className="bg-transparent border-none outline-none text-sm font-bold flex-grow min-w-[120px]" 
+                                        />
+                                    </div>
+                                    {/* Sugerencias de Etiquetas Globales para Subetiquetas */}
+                                    <div className="mt-2 flex flex-wrap gap-1.5 pl-1">
+                                        {globalTags.filter(t => !(editingProduct.subtags || []).includes(t.name)).map(t => (
+                                            <button 
+                                                key={t.id} 
+                                                type="button" 
+                                                onClick={() => setEditingProduct({ ...editingProduct, subtags: [...(editingProduct.subtags || []), t.name] })}
+                                                className="text-[10px] px-2 py-1 bg-white border border-blue-100 text-blue-600 font-bold rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                                            >
+                                                + {t.name}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
@@ -355,31 +496,45 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                 {/* Video Gallery */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Galería de Videos (URL)</label>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Galería de Videos</label>
                                         <button
                                             type="button"
-                                            onClick={() => setEditingProduct({ ...editingProduct, videos: [...(editingProduct.videos || []), ''] })}
+                                            onClick={() => {
+                                                setPickingFor({ type: 'video', index: (editingProduct.videos || []).length });
+                                                setIsMediaPickerOpen(true);
+                                            }}
                                             className="text-emerald-600 font-black text-[10px] uppercase tracking-widest hover:underline"
                                         >
                                             + Añadir Video
                                         </button>
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="grid grid-cols-4 gap-3">
                                         {(editingProduct.videos || []).map((video: string, i: number) => (
-                                            <div key={i} className="flex gap-2">
-                                                <input 
-                                                    value={video} 
-                                                    onChange={e => {
-                                                        const newVideos = [...editingProduct.videos];
-                                                        newVideos[i] = e.target.value;
-                                                        setEditingProduct({ ...editingProduct, videos: newVideos });
-                                                    }} 
-                                                    className="flex-grow bg-slate-50 border-none rounded-xl p-3 text-xs font-bold focus:ring-2 focus:ring-emerald-500/10" 
-                                                    placeholder="URL del video (YouTube, MP4, etc.)..." 
-                                                />
-                                                <button type="button" onClick={() => setEditingProduct({ ...editingProduct, videos: editingProduct.videos.filter((_: any, idx: number) => idx !== i) })} className="p-2 text-slate-300 hover:text-red-500 transition-colors">✕</button>
+                                            <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-slate-900 group">
+                                                <video src={video} className="w-full h-full object-cover opacity-50" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newVids = editingProduct.videos.filter((_: any, idx: number) => idx !== i);
+                                                        setEditingProduct({ ...editingProduct, videos: newVids });
+                                                    }}
+                                                    className="absolute inset-0 bg-red-600/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                                                >
+                                                    <CloseIcon size={16} />
+                                                </button>
                                             </div>
                                         ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPickingFor({ type: 'video', index: (editingProduct.videos || []).length });
+                                                setIsMediaPickerOpen(true);
+                                            }}
+                                            className="aspect-square rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 text-slate-400 hover:border-emerald-500 hover:text-emerald-600 transition-all bg-slate-50/50"
+                                        >
+                                            <Plus size={20} />
+                                            <span className="text-[8px] font-black uppercase">Subir Video</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -400,6 +555,36 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                             <button type="button" onClick={() => setEditingProduct({ ...editingProduct, treatment_benefits: editingProduct.treatment_benefits.filter((_: any, idx: number) => idx !== i) })} className="p-2 text-slate-300 hover:text-red-500 transition-colors">✕</button>
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-3 pt-6 border-t border-slate-50">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Secciones de Información Adicional</label>
+                                    <button type="button" onClick={() => setEditingProduct({ ...editingProduct, components: [...(editingProduct.components || []), { name: '', desc: '' }] })} className="text-emerald-600 font-black text-[10px] uppercase tracking-widest hover:underline">+ Añadir Sección</button>
+                                </div>
+                                <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                    {(editingProduct.components || []).map((c: any, i: number) => (
+                                        <div key={i} className="bg-slate-50 p-4 rounded-2xl relative border border-slate-100 group">
+                                            <button type="button" onClick={() => setEditingProduct({ ...editingProduct, components: editingProduct.components.filter((_: any, idx: number) => idx !== i) })} className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-200 text-slate-400 rounded-full flex items-center justify-center hover:text-red-500 hover:border-red-200 transition-all opacity-0 group-hover:opacity-100 z-10"><CloseIcon size={12} /></button>
+                                            <input value={c.name} onChange={e => {
+                                                const newComps = [...editingProduct.components];
+                                                newComps[i].name = e.target.value;
+                                                setEditingProduct({ ...editingProduct, components: newComps });
+                                            }} className="w-full bg-transparent border-b border-slate-200 pb-2 text-sm font-bold text-emerald-600 focus:border-emerald-500 outline-none mb-3" placeholder="Ej: Título (Descripción del procedimiento...)" />
+                                            <textarea value={c.desc} onChange={e => {
+                                                const newComps = [...editingProduct.components];
+                                                newComps[i].desc = e.target.value;
+                                                setEditingProduct({ ...editingProduct, components: newComps });
+                                            }} className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-300 outline-none h-20 resize-none custom-scrollbar" placeholder="Escribe el texto detallado para esta sección..." />
+                                        </div>
+                                    ))}
+                                    {(!editingProduct.components || editingProduct.components.length === 0) && (
+                                        <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-2xl">
+                                            <p className="text-xs text-slate-400 font-bold mb-2">Información extra para Landing Pages</p>
+                                            <button type="button" onClick={() => setEditingProduct({ ...editingProduct, components: [{ name: '', desc: '' }] })} className="text-emerald-600 font-black text-[10px] uppercase tracking-widest hover:underline">+ Crear primer bloque</button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -470,28 +655,132 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                 </div>
             )}
 
+            {/* Tags Manager Modal */}
+            {isAddingTag && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsAddingTag(false)}></div>
+                    <div className="relative bg-white w-full max-w-md rounded-[3rem] shadow-2xl p-8 animate-scale-in">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                                    <Tag size={20} />
+                                </div>
+                                <h2 className="text-xl font-black text-slate-900">Gestionar Etiquetas</h2>
+                            </div>
+                            <button onClick={() => setIsAddingTag(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Nueva etiqueta (Ej: Láser, Facial)..."
+                                    value={newTagName}
+                                    onKeyDown={e => { if (e.key === 'Enter') handleAddGlobalTag(); }}
+                                    onChange={(e) => setNewTagName(e.target.value)}
+                                    className="flex-grow bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                />
+                                <button
+                                    onClick={handleAddGlobalTag}
+                                    className="bg-emerald-600 text-white p-3 rounded-xl hover:bg-emerald-700 transition-colors"
+                                >
+                                    <Plus size={20} />
+                                </button>
+                            </div>
+
+                            <div className="bg-slate-50 rounded-2xl p-4 space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+                                {globalTags.length === 0 ? (
+                                    <p className="text-center text-xs text-slate-400 font-bold py-4 italic">No hay etiquetas creadas. Crea una para usarla como filtro o badge en tus productos.</p>
+                                ) : (
+                                    globalTags.map((tag) => (
+                                        <div key={tag.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100 group">
+                                            <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">{tag.name}</span>
+                                            <button
+                                                onClick={async () => {
+                                                    await supabase.from('tags').delete().eq('id', tag.id);
+                                                    fetchGlobalTags();
+                                                }}
+                                                className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setIsAddingTag(false)}
+                            className="w-full mt-6 bg-slate-900 text-white font-black py-4 rounded-2xl hover:bg-black transition-colors"
+                        >
+                            Listo
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Global Media Picker */}
             <MediaPicker
                 isOpen={isMediaPickerOpen}
                 onClose={() => setIsMediaPickerOpen(false)}
                 companyId={companyId}
+                type={pickingFor?.type === 'video' ? 'video' : 'image'}
+                title={pickingFor?.type === 'video' ? 'Seleccionar Video' : 'Seleccionar Imagen'}
                 onSelect={(url) => {
                     if (pickingFor?.type === 'primary') {
                         setEditingProduct({ ...editingProduct, imageUrl: url });
                     } else if (pickingFor?.type === 'secondary') {
                         const newImgs = [...(editingProduct.secondary_images || [])];
-                        // If index is provided and within range, update it, otherwise push
                         if (pickingFor.index !== undefined) {
                             newImgs[pickingFor.index] = url;
                         } else {
                             newImgs.push(url);
                         }
                         setEditingProduct({ ...editingProduct, secondary_images: newImgs });
+                    } else if (pickingFor?.type === 'video') {
+                        const newVids = [...(editingProduct.videos || [])];
+                        if (pickingFor.index !== undefined) {
+                            newVids[pickingFor.index] = url;
+                        } else {
+                            newVids.push(url);
+                        }
+                        setEditingProduct({ ...editingProduct, videos: newVids });
                     }
                     setIsMediaPickerOpen(false);
                     setPickingFor(null);
                 }}
             />
+
+            {/* Delete Confirmation Modal */}
+            {productToDelete && (
+                <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={() => setProductToDelete(null)}></div>
+                    <div className="relative bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 animate-scale-in text-center">
+                        <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <AlertTriangle size={40} className="text-red-500" />
+                        </div>
+                        <h2 className="text-2xl font-black text-slate-900 mb-2">¿Eliminar Producto?</h2>
+                        <p className="text-sm text-slate-500 font-medium mb-8">
+                            Estás a punto de eliminar permanentemente <strong>{productToDelete.title}</strong>. Esta acción no se puede deshacer.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setProductToDelete(null)}
+                                className="flex-1 bg-slate-100 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-200 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                className="flex-1 bg-red-500 text-white font-black py-4 rounded-xl hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all active:scale-95"
+                            >
+                                Sí, Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

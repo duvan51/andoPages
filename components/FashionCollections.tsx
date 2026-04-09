@@ -4,6 +4,7 @@ import { ArrowUpRight, Package } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTenant } from '../hooks/useTenant';
 import { MOCK_PRODUCTS } from '../constants/mockData';
+import { formatPriceCOP } from '../utils/format';
 
 interface FashionCollectionsProps {
     onSelect: (id: string) => void;
@@ -93,7 +94,7 @@ const FashionCollections: React.FC<FashionCollectionsProps> = ({ onSelect }) => 
                             <h3 className="text-xl font-bold text-slate-900 mb-1">{p.title}</h3>
                             <p className="text-sm font-bold text-slate-400 capitalize tracking-widest">{p.category || 'Categoría'}</p>
                             <div className="mt-2 text-lg font-black text-slate-900">
-                                ${Number(p.price).toLocaleString()}
+                                {formatPriceCOP(p.price)}
                             </div>
                         </div>
                     ))}

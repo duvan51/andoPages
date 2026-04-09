@@ -9,9 +9,10 @@ interface MediaPickerProps {
     onSelect: (url: string) => void;
     companyId?: string;
     title?: string;
+    type?: 'image' | 'video';
 }
 
-const MediaPicker: React.FC<MediaPickerProps> = ({ isOpen, onClose, onSelect, companyId, title = "Seleccionar Imagen" }) => {
+const MediaPicker: React.FC<MediaPickerProps> = ({ isOpen, onClose, onSelect, companyId, title = "Seleccionar Imagen", type = "image" }) => {
     const [media, setMedia] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -24,7 +25,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ isOpen, onClose, onSelect, co
 
     const fetchMedia = async () => {
         setIsLoading(true);
-        let query = supabase.from('media').select('*').eq('type', 'image').order('created_at', { ascending: false });
+        let query = supabase.from('media').select('*').eq('type', type).order('created_at', { ascending: false });
         if (companyId) query = query.eq('company_id', companyId);
 
         const { data, error } = await query;
@@ -44,6 +45,8 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ isOpen, onClose, onSelect, co
                 uploadPreset: 'promedid_preset',
                 sources: ['local', 'url'],
                 multiple: false,
+                resourceType: type,
+                clientAllowedFormats: type === 'video' ? ['mp4', 'mov', 'webm'] : undefined,
                 styles: {
                     palette: {
                         window: "#FFFFFF",
@@ -97,7 +100,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ isOpen, onClose, onSelect, co
                 <div className="p-8 border-b border-slate-50 flex items-center justify-between">
                     <div>
                         <h2 className="text-2xl font-black text-slate-900">{title}</h2>
-                        <p className="text-slate-500 font-medium">Elige una imagen de tu biblioteca o sube una nueva</p>
+                        <p className="text-slate-500 font-medium">Elige {type === 'video' ? 'un video' : 'una imagen'} de tu biblioteca o sube {type === 'video' ? 'uno' : 'una'} nuev{type === 'video' ? 'o' : 'a'}</p>
                     </div>
                     <button onClick={onClose} className="p-3 hover:bg-slate-50 rounded-full text-slate-400 transition-colors">
                         <X size={24} />
@@ -136,9 +139,12 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ isOpen, onClose, onSelect, co
                     ) : filteredMedia.length === 0 ? (
                         <div className="text-center py-20 flex flex-col items-center">
                             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-300">
-                                <ImageIcon size={32} />
-                            </div>
-                            <p className="text-slate-500 font-bold">No se encontraron imágenes</p>
+                                {type === 'video' ? (
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                ) : (
+                                    <ImageIcon size={32} />
+                                )}                            </div>
+                            <p className="text-slate-500 font-bold">No se encontraron {type === 'video' ? 'videos' : 'imágenes'}</p>
                             <button onClick={openUploadWidget} className="text-emerald-600 font-black mt-2 hover:underline">Subir la primera</button>
                         </div>
                     ) : (
@@ -149,7 +155,11 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ isOpen, onClose, onSelect, co
                                     onClick={() => onSelect(m.url)}
                                     className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer border-2 border-transparent hover:border-emerald-500 transition-all bg-slate-50"
                                 >
-                                    <img src={m.url} className="w-full h-full object-cover" alt={m.name} />
+                                    {type === 'video' ? (
+                                        <video src={m.url} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <img src={m.url} className="w-full h-full object-cover" alt={m.name} />
+                                    )}
                                     <div className="absolute inset-0 bg-emerald-600/0 group-hover:bg-emerald-600/10 transition-colors flex items-center justify-center">
                                         <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all">
                                             <Check className="text-emerald-600" size={20} strokeWidth={3} />

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { TREATMENTS } from '../constants/treatments';
+import { formatPriceCOP } from '../utils/format';
 
 interface TreatmentsListPageProps {
     onServiceSelect: (id: string) => void;
@@ -87,7 +88,7 @@ const TreatmentsListPage: React.FC<TreatmentsListPageProps> = ({ onServiceSelect
                                     </span>
                                     {treatment.price && (
                                         <span className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                                            {treatment.price}
+                                            {formatPriceCOP(treatment.price)}
                                         </span>
                                     )}
                                 </div>

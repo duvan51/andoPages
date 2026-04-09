@@ -3,6 +3,7 @@ import { ELITE_SERVICES } from '../constants/services';
 import { useServices } from '../hooks/useServices';
 import { getWhatsAppLeadUrl } from '../utils/whatsapp';
 import { supabase } from '../lib/supabase';
+import { formatPriceCOP } from '../utils/format';
 import ReviewsSection from './ReviewsSection';
 import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
@@ -188,9 +189,7 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
               </p>
               {service.price && (
                 <p className="text-3xl font-bold text-emerald-400 mb-10 flex items-center gap-2">
-                  ${!isNaN(Number(service.price)) 
-                    ? Number(service.price).toLocaleString() 
-                    : service.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                  {formatPriceCOP(service.price)}
                   {service.packagePrice && <span className="text-sm text-emerald-200/60 font-medium">({service.packagePrice})</span>}
                 </p>
               )}
@@ -379,7 +378,7 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
                   <h4 className="text-xl font-bold text-slate-900 mb-2">{sup.title}</h4>
                   <p className="text-sm text-slate-500 mb-6 leading-relaxed flex-grow">{sup.description}</p>
                   <div className="pt-4 border-t border-slate-50 w-full mt-auto">
-                    <p className="text-emerald-700 font-bold text-lg mb-4">{sup.price}</p>
+                    <p className="text-emerald-700 font-bold text-lg mb-4">{formatPriceCOP(sup.price)}</p>
                     <a
                       href={getWhatsAppLeadUrl({ customMessage: `Interés en ${sup.title}` })}
                       target="_blank"

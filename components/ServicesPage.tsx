@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getWhatsAppLeadUrl } from '../utils/whatsapp';
+import { formatPriceCOP } from '../utils/format';
 import { useServices } from '../hooks/useServices';
 import { useTenant } from '../hooks/useTenant';
 import { supabase } from '../lib/supabase';
@@ -124,7 +125,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onBack }) 
                                     </span>
                                     {treatment.price && (
                                         <span className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                                            {treatment.price}
+                                            {formatPriceCOP(treatment.price)}
                                         </span>
                                     )}
                                 </div>
