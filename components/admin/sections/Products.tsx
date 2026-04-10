@@ -265,7 +265,30 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                         </div>
                                     </div>
                                     <h3 className="text-lg font-black text-slate-900 leading-tight mb-1">{p.title}</h3>
-                                    <p className="text-xs text-slate-500 font-semibold line-clamp-1">{p.subtitle || 'Sin subtítulo'}</p>
+                                    {/* Etiquetas en la tarjeta en lugar del subtítulo */}
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                        {(p.tags?.length > 0 || p.subtags?.length > 0) ? (
+                                            <>
+                                                {(p.tags || []).slice(0, 3).map((t: string, i: number) => (
+                                                    <span key={`t-${i}`} className="text-[8px] px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-md font-bold uppercase tracking-wider truncate max-w-[80px]">
+                                                        {t}
+                                                    </span>
+                                                ))}
+                                                {(p.subtags || []).slice(0, 2).map((st: string, i: number) => (
+                                                    <span key={`st-${i}`} className="text-[8px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-md font-bold uppercase tracking-wider truncate max-w-[80px]">
+                                                        {st}
+                                                    </span>
+                                                ))}
+                                                {((p.tags?.length || 0) + (p.subtags?.length || 0) > 5) && (
+                                                    <span className="text-[8px] px-1.5 py-0.5 bg-slate-50 text-slate-400 rounded-md font-bold uppercase tracking-wider">
+                                                        +{((p.tags?.length || 0) + (p.subtags?.length || 0)) - 5}
+                                                    </span>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p className="text-[10px] text-slate-400 font-medium italic">Sin etiquetas</p>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center justify-between mt-4">

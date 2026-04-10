@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ELITE_SERVICES } from '../constants/services';
 import { useServices } from '../hooks/useServices';
 import { getWhatsAppLeadUrl } from '../utils/whatsapp';
@@ -37,7 +38,7 @@ const GalleryLightbox: React.FC<GalleryLightboxProps> = ({ media, initialIndex, 
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-xl" onClick={onClose}></div>
       
@@ -104,7 +105,8 @@ const GalleryLightbox: React.FC<GalleryLightboxProps> = ({ media, initialIndex, 
           {currentIndex + 1} / {media.length}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
