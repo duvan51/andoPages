@@ -7,9 +7,10 @@ interface HeaderProps {
   onServicesClick: () => void;
   onTreatmentsClick: () => void;
   onBookingClick: () => void;
+  onOffersClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onHomeClick, onServicesClick, onTreatmentsClick, onBookingClick }) => {
+const Header: React.FC<HeaderProps> = ({ onHomeClick, onServicesClick, onTreatmentsClick, onBookingClick, onOffersClick }) => {
   const { tenant } = useTenant();
   const [isScrolled, setIsScrolled] = useState(false);
   const isFashion = tenant?.business_type === 'fashion';
@@ -25,6 +26,7 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onServicesClick, onTreatme
   const navLinks = [
     { name: 'Inicio', href: '#home', action: onHomeClick },
     { name: isFashion ? 'Lookbook' : 'Tratamientos', href: isFashion ? '#lookbook' : '#tratamientos', action: onTreatmentsClick },
+    { name: 'Paquetes', href: '#ofertas-page', action: onOffersClick },
     ...(!isFashion ? [
       { name: 'Por qué PROMEDID', href: '#confianza' },
       { name: 'Sedes', href: '#sedes' },
@@ -56,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onServicesClick, onTreatme
               key={link.name}
               href={link.href}
               onClick={(e) => {
-              if (link.name === 'Inicio' || link.name === 'Tratamientos' || isFashion) {
+              if (link.name === 'Inicio' || link.name === 'Tratamientos' || link.name === 'Paquetes' || isFashion) {
                   // For simplicity in this demo, let them scroll normal if not handling complex SPA actions
                   if (link.action) {
                     e.preventDefault();

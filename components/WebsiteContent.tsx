@@ -48,7 +48,7 @@ const WebsiteContent: React.FC<WebsiteContentProps> = ({
                     <section id="servicios">
                         <Services onServiceSelect={onServiceSelect} onShowAll={onGoToServices} />
                     </section>
-                    <SpecialOffers />
+                    <SpecialOffers onServiceSelect={onServiceSelect} />
                     <TrustSection />
                     <section id="tratamientos">
                         <SpecializedTreatments onServiceSelect={onServiceSelect} onShowAll={onGoToServices} />
@@ -62,7 +62,7 @@ const WebsiteContent: React.FC<WebsiteContentProps> = ({
                     <section id="inventory">
                         <FashionCollections onSelect={onServiceSelect} />
                     </section>
-                    <SpecialOffers />
+                    <SpecialOffers onServiceSelect={onServiceSelect} />
                 </>
             )}
 
