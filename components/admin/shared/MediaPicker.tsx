@@ -93,7 +93,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ isOpen, onClose, onSelect, co
     );
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm animate-fade-in" onClick={onClose}></div>
             <div className="relative bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-scale-in">
                 {/* Header */}

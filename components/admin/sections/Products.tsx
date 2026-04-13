@@ -19,6 +19,8 @@ import {
     AlertTriangle
 } from 'lucide-react';
 import MediaPicker from '../shared/MediaPicker';
+import BulkImportModal from '../shared/BulkImportModal';
+import QuickAddModal from '../shared/QuickAddModal';
 
 interface ProductsManagerProps {
     companyId?: string;
@@ -42,6 +44,8 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
     const [globalTags, setGlobalTags] = useState<any[]>([]);
     const [isAddingTag, setIsAddingTag] = useState(false);
     const [newTagName, setNewTagName] = useState('');
+    const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+    const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
 
     useEffect(() => {
         if (companyId) {
@@ -197,6 +201,20 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                         >
                             <Tag size={20} />
                             Etiquetas
+                        </button>
+                        <button
+                            onClick={() => setIsBulkModalOpen(true)}
+                            className="flex items-center gap-2 bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-2xl font-bold shadow-lg transition-all"
+                        >
+                            <Upload size={20} />
+                            Carga Masiva
+                        </button>
+                        <button
+                            onClick={() => setIsQuickAddModalOpen(true)}
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg transition-all"
+                        >
+                            <Plus size={20} />
+                            Carga Rápida
                         </button>
                         <button
                             onClick={() => setEditingProduct({
@@ -804,6 +822,22 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                     </div>
                 </div>
             )}
+            {/* Bulk Import Modal */}
+            <BulkImportModal 
+                isOpen={isBulkModalOpen}
+                onClose={() => setIsBulkModalOpen(false)}
+                onSuccess={fetchProducts}
+                companyId={companyId || ''}
+                categories={categories}
+            />
+            {/* Quick Add Modal */}
+            <QuickAddModal 
+                isOpen={isQuickAddModalOpen}
+                onClose={() => setIsQuickAddModalOpen(false)}
+                onSuccess={fetchProducts}
+                companyId={companyId || ''}
+                categories={categories}
+            />
         </div>
     );
 };

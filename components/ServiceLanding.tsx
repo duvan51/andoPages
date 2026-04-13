@@ -6,6 +6,7 @@ import { getWhatsAppLeadUrl } from '../utils/whatsapp';
 import { supabase } from '../lib/supabase';
 import { formatPriceCOP } from '../utils/format';
 import ReviewsSection from './ReviewsSection';
+import OptimizedImage from './shared/OptimizedImage';
 import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
 interface GalleryLightboxProps {
@@ -92,10 +93,11 @@ const GalleryLightbox: React.FC<GalleryLightboxProps> = ({ media, initialIndex, 
               />
             )
           ) : (
-            <img 
+            <OptimizedImage 
               src={currentMedia.url} 
               alt={`Gallery item ${currentIndex + 1}`} 
-              className="max-h-full max-w-full object-contain"
+              className="max-h-full max-w-full"
+              style={{ objectFit: 'contain' }}
             />
           )}
         </div>
@@ -165,7 +167,12 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
       {/* Hero Section Landing */}
       <div className="relative bg-emerald-950 text-white overflow-hidden py-24 md:py-32">
         <div className="absolute inset-0 opacity-30">
-          <img src={service.imageUrl} className="w-full h-full object-cover" alt={service.title} />
+          <OptimizedImage 
+            src={service.imageUrl} 
+            className="w-full h-full" 
+            alt={service.title} 
+            priority={true}
+          />
           <div className="absolute inset-0 bg-emerald-950/80"></div>
         </div>
 
@@ -236,7 +243,11 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
                           className="col-span-2 rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl aspect-[16/9] mb-2 cursor-pointer group hover:border-emerald-500/50 transition-all"
                           onClick={() => openGallery(0)}
                         >
-                          <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                          <OptimizedImage 
+                            src={service.imageUrl} 
+                            alt={service.title} 
+                            className="w-full h-full transition-transform duration-700 group-hover:scale-105" 
+                          />
                           <div className="absolute inset-0 bg-emerald-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                              <div className="bg-white/20 backdrop-blur-md p-4 rounded-full text-white">
                                <ChevronRight size={32} />
@@ -256,7 +267,11 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
                                 <Play size={32} className="text-emerald-400 fill-emerald-400" />
                               </div>
                             ) : (
-                              <img src={item.url} alt={`Gallery item ${i + 1}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                              <OptimizedImage 
+                                src={item.url} 
+                                alt={`Gallery item ${i + 1}`} 
+                                className="w-full h-full transition-transform duration-700 group-hover:scale-110" 
+                              />
                             )}
                             {i === 1 && galleryItems.length > 3 && (
                               <div className="absolute inset-0 bg-emerald-950/60 backdrop-blur-sm flex items-center justify-center text-white font-black text-xl">
@@ -271,7 +286,11 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
                         className="rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl aspect-square max-w-md mx-auto lg:ml-auto cursor-pointer group hover:border-emerald-500/50 transition-all relative"
                         onClick={() => openGallery(0)}
                       >
-                        <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        <OptimizedImage 
+                          src={service.imageUrl} 
+                          alt={service.title} 
+                          className="w-full h-full transition-transform duration-700 group-hover:scale-110" 
+                        />
                         <div className="absolute inset-0 bg-emerald-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                              <div className="bg-white/20 backdrop-blur-md p-4 rounded-full text-white">
                                <ChevronRight size={32} />
@@ -372,7 +391,13 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
               {recommendedSupplements.map((sup) => (
                 <div key={sup.id} className="bg-white rounded-3xl p-8 border border-slate-200 hover:shadow-xl transition-all flex flex-col items-center text-center">
                   <div className="relative mb-6">
-                    <img src={sup.imageUrl} className="w-32 h-32 rounded-2xl object-cover shadow-lg" alt={sup.title} />
+                    <OptimizedImage 
+                      src={sup.imageUrl} 
+                      className="w-32 h-32 rounded-2xl shadow-lg" 
+                      alt={sup.title} 
+                      width={128}
+                      height={128}
+                    />
                     <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ring-4 ring-white">
                       +
                     </div>

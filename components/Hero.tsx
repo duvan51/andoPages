@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useTenant } from '../hooks/useTenant';
+import OptimizedImage from './shared/OptimizedImage';
 
 interface HeroProps {
   onServiceSelect: (id: string) => void;
@@ -82,11 +83,13 @@ const Hero: React.FC<HeroProps> = ({ onServiceSelect, onTreatmentsClick }) => {
           <div className="flex items-center gap-6 pt-4">
             <div className="flex -space-x-3">
               {[1, 2, 3, 4].map((i) => (
-                <img
+                <OptimizedImage
                   key={i}
                   src={`https://picsum.photos/seed/${i + 20}/100/100`}
                   className="w-12 h-12 rounded-full border-4 border-emerald-50"
                   alt="Patient"
+                  width={48}
+                  height={48}
                 />
               ))}
             </div>
@@ -99,10 +102,12 @@ const Hero: React.FC<HeroProps> = ({ onServiceSelect, onTreatmentsClick }) => {
 
         <div className="relative hidden lg:block">
           <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl">
-            <img
+            <OptimizedImage
               src={config.imageUrl || "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=1000"}
               alt={tenant?.name || "Bienestar Integral"}
-              className="w-full h-auto object-cover aspect-[4/5]"
+              className="w-full h-auto"
+              style={{ aspectRatio: '4/5' }}
+              priority={true}
             />
             <div className={`absolute inset-0 bg-gradient-to-t ${isDark ? 'from-slate-950/40' : 'from-emerald-950/40'} to-transparent`}></div>
           </div>
