@@ -1,4 +1,6 @@
 <?php
+error_reporting(0); // Prevenir que warnings HTML rompan la estructura XML del sitemap
+
 // Evitar errores por caché
 header("Cache-Control: no-cache, must-revalidate");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
@@ -98,24 +100,28 @@ echo "  </url>\n";
 
 // URL Paquetes de Oferta
 echo "  <url>\n";
-echo "    <loc>" . htmlspecialchars($base_url . '/#offers') . "</loc>\n"; // O enrutamiento pertinente si fuera real path
+echo "    <loc>" . htmlspecialchars($base_url . '/#offers') . "</loc>\n";
 echo "    <changefreq>weekly</changefreq>\n";
 echo "    <priority>0.8</priority>\n";
 echo "  </url>\n";
 
 // URLs por Producto
-foreach ($treatments as $treatment) {
-    $date = date('Y-m-d');
-    if (isset($treatment['updated_at']) && !empty($treatment['updated_at'])) {
-        $date = substr($treatment['updated_at'], 0, 10);
+if (is_array($treatments) && !isset($treatments['error']) && !isset($treatments['message'])) {
+    foreach ($treatments as $treatment) {
+        if (!is_array($treatment) || !isset($treatment['id'])) continue;
+        
+        $date = date('Y-m-d');
+        if (isset($treatment['updated_at']) && !empty($treatment['updated_at'])) {
+            $date = substr($treatment['updated_at'], 0, 10);
+        }
+        
+        echo "  <url>\n";
+        echo "    <loc>" . htmlspecialchars($base_url . '/producto/' . $treatment['id']) . "</loc>\n";
+        echo "    <lastmod>" . htmlspecialchars($date) . "</lastmod>\n";
+        echo "    <changefreq>weekly</changefreq>\n";
+        echo "    <priority>0.9</priority>\n";
+        echo "  </url>\n";
     }
-    
-    echo "  <url>\n";
-    echo "    <loc>" . htmlspecialchars($base_url . '/producto/' . $treatment['id']) . "</loc>\n";
-    echo "    <lastmod>" . htmlspecialchars($date) . "</lastmod>\n";
-    echo "    <changefreq>weekly</changefreq>\n";
-    echo "    <priority>0.9</priority>\n";
-    echo "  </url>\n";
 }
 
 echo '</urlset>';

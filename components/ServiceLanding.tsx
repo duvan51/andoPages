@@ -8,7 +8,7 @@ import { formatPriceCOP } from '../utils/format';
 import ReviewsSection from './ReviewsSection';
 import OptimizedImage from './shared/OptimizedImage';
 import BundleCard, { BundleModal } from './shared/BundleCard';
-import { X, ChevronLeft, ChevronRight, Play, Gift } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Play, Gift, Share2, Check } from 'lucide-react';
 
 interface GalleryLightboxProps {
   media: { url: string; type: 'image' | 'video' }[];
@@ -126,6 +126,7 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
   const [relatedBundles, setRelatedBundles] = useState<any[]>([]);
   const [suggestedBundles, setSuggestedBundles] = useState<any[]>([]);
   const [isHeroOfferOpen, setIsHeroOfferOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const [lightbox, setLightbox] = useState<{ isOpen: boolean; initialIndex: number }>({ isOpen: false, initialIndex: 0 });
 
   useEffect(() => {
@@ -172,6 +173,16 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
     setReviewsLoading(false);
   };
 
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
+  };
+
   const loading = servicesLoading;
 
   // Combinar ambos tipos de datos (Services + Treatments)
@@ -207,13 +218,22 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
         </div>
 
         <div className="container mx-auto px-4 md:px-6 relative z-10">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-emerald-400 font-bold mb-8 hover:text-emerald-300 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-            Volver
-          </button>
+          <div className="flex justify-between items-center mb-8">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-2 text-emerald-400 font-bold hover:text-emerald-300 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+              Volver
+            </button>
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-medium transition-all"
+            >
+              {isCopied ? <Check size={18} className="text-emerald-400" /> : <Share2 size={18} />}
+              {isCopied ? 'Enlace copiado' : 'Compartir'}
+            </button>
+          </div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="max-w-3xl">

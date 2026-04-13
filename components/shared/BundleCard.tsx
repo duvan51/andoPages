@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Tag, Clock, ArrowRight, X, Sparkles, CheckCircle2 } from 'lucide-react';
 import { formatPriceCOP } from '../../utils/format';
 import { getWhatsAppLeadUrl } from '../../utils/whatsapp';
+import { UrgencyBadge } from './UrgencyBadge';
 
 export interface BundleProps {
     id: string;
@@ -52,8 +53,7 @@ export const BundleModal: React.FC<{ offer: BundleProps; isFashion: boolean; isO
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent md:hidden z-[3]"></div>
                         {offer.expiry_date && (
                             <div className="absolute bottom-6 left-6 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white bg-amber-500/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg z-20">
-                                <Clock size={14} />
-                                <span>Válido hasta: {new Date(offer.expiry_date).toLocaleDateString()}</span>
+                                <UrgencyBadge expiryDate={offer.expiry_date} redAlertClass="text-red-100 font-extrabold" staticSize={14} />
                             </div>
                         )}
                     </div>
@@ -145,8 +145,7 @@ const BundleCard: React.FC<BundleCardProps> = ({ offer, isFashion, onServiceSele
                         </div>
                         {offer.expiry_date && (
                             <div className="absolute bottom-4 left-4 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-amber-900 bg-amber-400 px-3 py-1.5 rounded-full shadow-md z-10">
-                                <Clock size={10} />
-                                <span>{new Date(offer.expiry_date).getDate()}/{new Date(offer.expiry_date).getMonth() + 1}</span>
+                                <UrgencyBadge expiryDate={offer.expiry_date} redAlertClass="text-red-900 font-extrabold shadow" staticSize={10} />
                             </div>
                         )}
                     </div>
