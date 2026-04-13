@@ -55,17 +55,31 @@ const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            const { error } = await supabase.from('bundles').upsert({
-                ...editingBundle,
-                company_id: companyId // AUTO ASSIGN
-            });
+        if (!companyId) {
+            alert('Error: No se identificó la empresa. Por favor recarga la página.');
+            return;
+        }
 
-            if (error) throw error;
+        try {
+            const bundleToSave = {
+                ...editingBundle,
+                company_id: companyId
+            };
+
+            const { error } = await supabase
+                .from('bundles')
+                .upsert(bundleToSave);
+
+            if (error) {
+                console.error('Error de Supabase RLS/DB:', error);
+                throw error;
+            }
+            
             setEditingBundle(null);
             fetchBundles();
         } catch (err: any) {
-            alert('Error: ' + err.message);
+            console.error('Error completo:', err);
+            alert('Error al guardar: ' + err.message);
         }
     };
 
