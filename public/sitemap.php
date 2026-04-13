@@ -40,9 +40,10 @@ if(empty($host)) {
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
 $base_url = "$protocol://$host";
 
-// 1. Obtener Tenant por dominio
+// 1. Obtener Empresa (Tenant) por dominio
+$cleanHostname = preg_replace('/^www\./', '', $host);
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, "$supabase_url/rest/v1/tenants?domain=eq." . urlencode($host) . "&select=id");
+curl_setopt($ch, CURLOPT_URL, "$supabase_url/rest/v1/companies?custom_domain=in.%28%22" . urlencode($host) . "%22,%22" . urlencode($cleanHostname) . "%22%29&select=id");
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     "apikey: $supabase_key",
@@ -53,24 +54,25 @@ $response = curl_exec($ch);
 $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 if ($httpcode >= 400 || !$response) {
     curl_close($ch);
-    echo '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>' . $base_url . '/</loc></url></urlset>';
+    echo '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>' . htmlspecialchars($base_url . '/') . '</loc></url></urlset>';
     exit;
 }
 
-$tenants = json_decode($response, true);
-$tenant_id = null;
-if (is_array($tenants) && count($tenants) > 0) {
-    // Exact match for domains is preferred but let's just take the first
-    $tenant_id = $tenants[0]['id'];
+$companies = json_decode($response, true);
+$company_id = null;
+if (is_array($companies) && count($companies) > 0) {
+    $company_id = $companies[0]['id'];
 }
 curl_close($ch);
 
 $treatments = [];
 
-if ($tenant_id) {
+if ($company_id) {
     // 2. Obtener productos de este tenant
     $ch2 = curl_init();
-    curl_setopt($ch2, CURLOPT_URL, "$supabase_url/rest/v1/treatments?tenant_id=eq.$tenant_id&active=eq.true&select=id,updated_at");
+    curl_setopt($ch2, CURLOPT_URL, "$supabase_url/rest/v1/treatments?company_id=eq.$company_id&select=id,updated_at");
+//    curl_setopt($ch2, CURLOPT_URL, "$supabase_url/rest/v1/treatments?company_id=eq.$company_id&active=eq.true&select=id,updated_at");
+
     curl_setopt($ch2, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch2, CURLOPT_HTTPHEADER, [
         "apikey: $supabase_key",
