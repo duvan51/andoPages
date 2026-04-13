@@ -66,15 +66,20 @@ const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
                 company_id: companyId
             };
 
-            const { error } = await supabase
+            console.log('Intentando guardar Bundle:', bundleToSave);
+            console.log('Con Company ID:', companyId);
+
+            const { data, error } = await supabase
                 .from('bundles')
-                .upsert(bundleToSave);
+                .upsert(bundleToSave)
+                .select();
 
             if (error) {
-                console.error('Error de Supabase RLS/DB:', error);
+                console.error('Error de Supabase RLS/DB detallado:', error);
                 throw error;
             }
             
+            console.log('Guardado exitoso:', data);
             setEditingBundle(null);
             fetchBundles();
         } catch (err: any) {
