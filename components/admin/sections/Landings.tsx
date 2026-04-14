@@ -22,11 +22,14 @@ const LandingsManager: React.FC<LandingsManagerProps> = ({ companyId }) => {
     }, [companyId]);
 
     const fetchLandings = async () => {
+        if (!companyId) return;
         setIsLoading(true);
-        let query = supabase.from('landings').select('*').order('created_at', { ascending: false });
-        if (companyId) query = query.eq('company_id', companyId);
+        const { data, error } = await supabase
+            .from('landings')
+            .select('*')
+            .eq('company_id', companyId)
+            .order('created_at', { ascending: false });
 
-        const { data, error } = await query;
         if (!error && data) setLandings(data);
         setIsLoading(false);
     };

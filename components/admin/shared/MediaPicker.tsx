@@ -24,11 +24,18 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ isOpen, onClose, onSelect, co
     }, [isOpen, companyId]);
 
     const fetchMedia = async () => {
+        if (!companyId) {
+            setIsLoading(false);
+            return;
+        }
         setIsLoading(true);
-        let query = supabase.from('media').select('*').eq('type', type).order('created_at', { ascending: false });
-        if (companyId) query = query.eq('company_id', companyId);
+        const { data, error } = await supabase
+            .from('media')
+            .select('*')
+            .eq('type', type)
+            .eq('company_id', companyId)
+            .order('created_at', { ascending: false });
 
-        const { data, error } = await query;
         if (!error && data) setMedia(data);
         setIsLoading(false);
     };

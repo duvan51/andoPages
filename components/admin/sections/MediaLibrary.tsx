@@ -18,15 +18,14 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ companyId }) => {
     }, [companyId]);
 
     const fetchMedia = async () => {
+        if (!companyId) return;
         setIsLoading(true);
-        let query = supabase.from('media').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase
+            .from('media')
+            .select('*')
+            .eq('company_id', companyId)
+            .order('created_at', { ascending: false });
 
-        // Multi-tenant check (if companyId is provided)
-        if (companyId) {
-            query = query.eq('company_id', companyId);
-        }
-
-        const { data, error } = await query;
         if (!error && data) setMedia(data);
         setIsLoading(false);
     };

@@ -16,17 +16,34 @@ const ReviewsManager: React.FC<ReviewsManagerProps> = ({ companyId }) => {
   }, [companyId]);
 
   const fetchReviews = async () => {
+    if (!companyId) {
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
     // Since reviews are linked to treatments which are linked to companies
     // we need to join or filter by treatment_id belonging to the company
     
     // First get company's treatments
-    const { data: treatments } = await supabase
+    const { data: treatments, error: treatmentsError } = await supabase
       .from('treatments')
-      .select('id, title');
-      // .eq('company_id', companyId); // Add this if companies are segregated by ID
+      .select('id, title')
+      .eq('company_id', companyId);
+
+    if (treatmentsError) {
+      console.error('Error fetching treatments:', treatmentsError);
+      setLoading(false);
+      return;
+    }
 
     const treatmentIds = treatments?.map(t => t.id) || [];
+
+    if (treatmentIds.length === 0) {
+      setReviews([]);
+      setLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from('reviews')

@@ -56,9 +56,10 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
     }, [companyId]);
 
     const fetchProducts = async () => {
+        if (!companyId) return;
         setIsLoading(true);
         let query = supabase.from('treatments').select('*, treatment_benefits(*)').order('created_at', { ascending: false });
-        if (companyId) query = query.eq('company_id', companyId);
+        query = query.eq('company_id', companyId);
 
         const { data, error } = await query;
         if (!error && data) setProducts(data);
@@ -66,6 +67,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
     };
 
     const fetchCategories = async () => {
+        if (!companyId) return;
         const { data, error } = await supabase
             .from('categories')
             .select('*')
@@ -92,6 +94,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
     };
 
     const fetchGlobalTags = async () => {
+        if (!companyId) return;
         const { data, error } = await supabase
             .from('tags')
             .select('*')

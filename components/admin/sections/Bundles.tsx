@@ -33,11 +33,14 @@ const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
     }, [companyId]);
 
     const fetchBundles = async () => {
+        if (!companyId) return;
         setIsLoading(true);
-        let query = supabase.from('bundles').select('*').order('created_at', { ascending: false });
-        if (companyId) query = query.eq('company_id', companyId);
+        const { data, error } = await supabase
+            .from('bundles')
+            .select('*')
+            .eq('company_id', companyId)
+            .order('created_at', { ascending: false });
 
-        const { data, error } = await query;
         if (!error && data) setBundles(data);
         setIsLoading(false);
     };

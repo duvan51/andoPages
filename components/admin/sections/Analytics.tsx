@@ -17,11 +17,15 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ companyId }) =>
     }, [companyId]);
 
     const fetchEvents = async () => {
+        if (!companyId) return;
         setIsLoading(true);
-        let query = supabase.from('analytics_events').select('*').order('created_at', { ascending: false }).limit(200);
-        if (companyId) query = query.eq('company_id', companyId);
+        const { data, error } = await supabase
+            .from('analytics_events')
+            .select('*')
+            .eq('company_id', companyId)
+            .order('created_at', { ascending: false })
+            .limit(200);
 
-        const { data, error } = await query;
         if (!error && data) setEvents(data);
         setIsLoading(false);
     };
