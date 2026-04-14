@@ -37,9 +37,12 @@ const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
     }, [companyId]);
 
     const fetchProducts = async () => {
-        let query = supabase.from('treatments').select('id, title').order('created_at', { ascending: false });
-        if (companyId) query = query.eq('company_id', companyId);
-        const { data, error } = await query;
+        if (!companyId) return;
+        const { data, error } = await supabase
+            .from('treatments')
+            .select('id, title')
+            .eq('company_id', companyId)
+            .order('created_at', { ascending: false });
         if (!error && data) setProducts(data);
     };
 

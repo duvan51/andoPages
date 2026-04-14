@@ -25,11 +25,16 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onServicesClick, onTreatme
 
   useEffect(() => {
     const fetchBundles = async () => {
-      const { data } = await supabase.from('bundles').select('*').limit(5);
+      if (!tenant?.id) return;
+      const { data } = await supabase
+        .from('bundles')
+        .select('*')
+        .eq('company_id', tenant.id)
+        .limit(5);
       if (data && data.length > 0) setAnnouncementBundles(data);
     };
     fetchBundles();
-  }, []);
+  }, [tenant?.id]);
 
   useEffect(() => {
     if (announcementBundles.length <= 1) return;
