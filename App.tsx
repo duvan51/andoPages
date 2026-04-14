@@ -19,13 +19,14 @@ import SaaSLanding from './components/SaaSLanding';
 import FashionHero from './components/FashionHero';
 import FashionCollections from './components/FashionCollections';
 import SpecialOffers from './components/SpecialOffers';
+import OffersPage from './components/OffersPage';
 import WebsiteContent from './components/WebsiteContent';
 import { useTenant } from './hooks/useTenant';
 import { supabase } from './lib/supabase'; // Importación necesaria para el auto-login
 
 const App: React.FC = () => {
   const { tenant, isMainDomain, isLoading: isTenantLoading, isError: isTenantError } = useTenant();
-  const [currentView, setCurrentView] = useState<'home' | 'services' | 'service-detail' | 'admin' | 'landing'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'services' | 'service-detail' | 'admin' | 'landing' | 'offers'>('home');
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [landingSlug, setLandingSlug] = useState<string | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -58,16 +59,21 @@ const App: React.FC = () => {
         const slug = path.replace('/landing/', '');
         setLandingSlug(slug);
         setCurrentView('landing');
-      } else if (hash.startsWith('#treatment/')) {
+      } else if (path.startsWith('/producto/')) {
+        const id = path.replace('/producto/', '');
+        setSelectedServiceId(id);
+        setCurrentView('service-detail');
+      } else if (hash.startsWith('#treatment/')) { // Compatibilidad con enlaces viejos
         const id = hash.replace('#treatment/', '');
         setSelectedServiceId(id);
         setCurrentView('service-detail');
+        window.history.replaceState({}, '', `/producto/${id}`); // Actualizar URL
       } else if (path === '/' || path === '/home' || !path) {
         // ONLY reset to home if the hash is explicitly #home or empty AND 
         // it wasn't a Supabase auth redirect (which contains access_token)
         if (hash === '#home' || (!hash && !window.location.href.includes('access_token'))) {
           setCurrentView((prev) => {
-            if (prev === 'admin' || prev === 'landing' || prev === 'service-detail') return 'home';
+            if (prev === 'admin' || prev === 'landing' || prev === 'service-detail' || prev === 'offers') return 'home';
             return prev;
           });
         }
@@ -136,11 +142,17 @@ const App: React.FC = () => {
   const handleServiceSelect = (id: string) => {
     setSelectedServiceId(id);
     setCurrentView('service-detail');
+    window.history.pushState({}, '', `/producto/${id}`);
+    window.scrollTo(0, 0);
   };
 
   const handleGoToServices = () => {
     setCurrentView('services');
     setSelectedServiceId(null);
+  };
+
+  const handleGoToOffers = () => {
+    navigate('/', 'offers');
   };
 
   const handleBackToHome = () => {
@@ -181,6 +193,7 @@ const App: React.FC = () => {
           onHomeClick={handleBackToHome}
           onServicesClick={handleGoToServices}
           onTreatmentsClick={handleGoToServices}
+          onOffersClick={handleGoToOffers}
           onBookingClick={() => setIsBookingOpen(true)}
         />
       )}
@@ -194,12 +207,15 @@ const App: React.FC = () => {
           <ServiceLanding
             serviceId={selectedServiceId}
             onBack={() => setCurrentView('services')}
+            onGoToOffers={handleGoToOffers}
           />
         ) : currentView === 'services' ? (
           <ServicesPage
             onServiceSelect={handleServiceSelect}
             onBack={handleBackToHome}
           />
+        ) : currentView === 'offers' ? (
+          <OffersPage onBack={handleBackToHome} onServiceSelect={handleServiceSelect} />
         ) : isMainDomain ? (
           <SaaSLanding onLoginClick={() => navigate('/admin', 'admin')} />
         ) : (

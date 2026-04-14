@@ -24,13 +24,24 @@ interface BundlesManagerProps {
 
 const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
     const [bundles, setBundles] = useState<any[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [editingBundle, setEditingBundle] = useState<any>(null);
     const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
 
     useEffect(() => {
         fetchBundles();
+        if (companyId) {
+            fetchProducts();
+        }
     }, [companyId]);
+
+    const fetchProducts = async () => {
+        let query = supabase.from('treatments').select('id, title').order('created_at', { ascending: false });
+        if (companyId) query = query.eq('company_id', companyId);
+        const { data, error } = await query;
+        if (!error && data) setProducts(data);
+    };
 
     const fetchBundles = async () => {
         if (!companyId) return;
@@ -47,17 +58,27 @@ const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!companyId) {
+            alert('Error: No se identificó la empresa. Por favor recarga la página.');
+            return;
+        }
+
         try {
-            const { error } = await supabase.from('bundles').upsert({
+            const bundleToSave = {
                 ...editingBundle,
-                company_id: companyId // AUTO ASSIGN
-            });
+                company_id: companyId
+            };
+
+            const { error } = await supabase
+                .from('bundles')
+                .upsert(bundleToSave);
 
             if (error) throw error;
+            
             setEditingBundle(null);
             fetchBundles();
         } catch (err: any) {
-            alert('Error: ' + err.message);
+            alert('Error al guardar: ' + err.message);
         }
     };
 
@@ -74,7 +95,7 @@ const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
                 subtitle="Crea promociones combinadas y ofertas por tiempo limitado"
                 rightElement={
                     <button
-                        onClick={() => setEditingBundle({ title: '', bundle_price: '', original_total: '', description: '', imageUrl: '', expiry_date: '' })}
+                        onClick={() => setEditingBundle({ title: '', bundle_price: '', original_total: '', description: '', imageUrl: '', product_id: '', expiry_date: '' })}
                         className="w-full md:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg transition-all"
                     >
                         <Plus size={20} />
@@ -163,17 +184,33 @@ const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Fecha de Expiración (Opcional)</label>
-                                <div className="relative">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                    <input type="date" value={editingBundle.expiry_date?.split('T')[0] || ''} onChange={e => setEditingBundle({ ...editingBundle, expiry_date: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl pl-12 p-4 text-sm font-bold outline-none" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Fecha de Expiración (Opcional)</label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input type="date" value={editingBundle.expiry_date?.split('T')[0] || ''} onChange={e => setEditingBundle({ ...editingBundle, expiry_date: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl pl-12 p-4 text-sm font-bold outline-none" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Producto Relacionado</label>
+                                    <select 
+                                        required
+                                        value={editingBundle.product_id || ''} 
+                                        onChange={e => setEditingBundle({ ...editingBundle, product_id: e.target.value })} 
+                                        className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
+                                    >
+                                        <option value="">Seleccionar un producto...</option>
+                                        {products.map(p => (
+                                            <option key={p.id} value={p.id}>{p.title}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
                                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Descripción</label>
-                                <textarea value={editingBundle.description} onChange={e => setEditingBundle({ ...editingBundle, description: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none h-24 resize-none" placeholder="¿Qué incluye este paquete?" />
+                                <textarea value={editingBundle.description} onChange={e => setEditingBundle({ ...editingBundle, description: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none min-h-[160px] resize-y" placeholder="¿Qué incluye este paquete?" />
                             </div>
 
                             <div className="space-y-3 pt-4 border-t border-slate-50">

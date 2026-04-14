@@ -375,7 +375,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5 col-span-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Descripción Corta</label>
-                                    <textarea value={editingProduct.description} onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none h-20 resize-none focus:ring-2 focus:ring-emerald-500/10 transition-all" placeholder="Describe brevemente el producto..." />
+                                    <textarea value={editingProduct.description} onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none min-h-[160px] resize-y focus:ring-2 focus:ring-emerald-500/10 transition-all" placeholder="Describe brevemente el producto..." />
                                 </div>
                             </div>
 
@@ -620,7 +620,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                                 const newComps = [...editingProduct.components];
                                                 newComps[i].desc = e.target.value;
                                                 setEditingProduct({ ...editingProduct, components: newComps });
-                                            }} className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-300 outline-none h-20 resize-none custom-scrollbar" placeholder="Escribe el texto detallado para esta sección..." />
+                                            }} className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-300 outline-none min-h-[140px] resize-y custom-scrollbar" placeholder="Escribe el texto detallado para esta sección..." />
                                         </div>
                                     ))}
                                     {(!editingProduct.components || editingProduct.components.length === 0) && (

@@ -7,7 +7,8 @@ import { supabase } from '../lib/supabase';
 import { formatPriceCOP } from '../utils/format';
 import ReviewsSection from './ReviewsSection';
 import OptimizedImage from './shared/OptimizedImage';
-import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import BundleCard, { BundleModal } from './shared/BundleCard';
+import { X, ChevronLeft, ChevronRight, Play, Gift, Share2, Check } from 'lucide-react';
 
 interface GalleryLightboxProps {
   media: { url: string; type: 'image' | 'video' }[];
@@ -115,17 +116,47 @@ const GalleryLightbox: React.FC<GalleryLightboxProps> = ({ media, initialIndex, 
 interface ServiceLandingProps {
   serviceId: string;
   onBack: () => void;
+  onGoToOffers?: () => void;
 }
 
-const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) => {
+const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGoToOffers }) => {
   const { treatments, supplements, loading: servicesLoading } = useServices();
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [relatedBundles, setRelatedBundles] = useState<any[]>([]);
+  const [suggestedBundles, setSuggestedBundles] = useState<any[]>([]);
+  const [isHeroOfferOpen, setIsHeroOfferOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const [lightbox, setLightbox] = useState<{ isOpen: boolean; initialIndex: number }>({ isOpen: false, initialIndex: 0 });
 
   useEffect(() => {
     fetchReviews();
+    fetchRelatedBundles();
+    fetchSuggestedBundles();
   }, [serviceId]);
+
+  const fetchSuggestedBundles = async () => {
+    const { data, error } = await supabase
+      .from('bundles')
+      .select('*')
+      .limit(10);
+    
+    if (!error && data) {
+      const filtered = data.filter((b: any) => b.product_id !== serviceId).slice(0, 4);
+      setSuggestedBundles(filtered);
+    }
+  };
+
+  const fetchRelatedBundles = async () => {
+    const { data, error } = await supabase
+      .from('bundles')
+      .select('*')
+      .eq('product_id', serviceId);
+    
+    if (!error && data) {
+      setRelatedBundles(data);
+    }
+  };
 
   const fetchReviews = async () => {
     setReviewsLoading(true);
@@ -140,6 +171,16 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
       setReviews(data);
     }
     setReviewsLoading(false);
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
   };
 
   const loading = servicesLoading;
@@ -177,13 +218,22 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
         </div>
 
         <div className="container mx-auto px-4 md:px-6 relative z-10">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-emerald-400 font-bold mb-8 hover:text-emerald-300 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-            Volver
-          </button>
+          <div className="flex justify-between items-center mb-8">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-2 text-emerald-400 font-bold hover:text-emerald-300 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+              Volver
+            </button>
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-medium transition-all"
+            >
+              {isCopied ? <Check size={18} className="text-emerald-400" /> : <Share2 size={18} />}
+              {isCopied ? 'Enlace copiado' : 'Compartir'}
+            </button>
+          </div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="max-w-3xl">
@@ -211,14 +261,24 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
                 >
                   Agendar Valoración Ahora
                 </a>
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-xl font-bold text-lg transition-all backdrop-blur-sm"
-                >
-                  Hablar con un Especialista
-                </a>
+                {relatedBundles.length > 0 ? (
+                  <button
+                    onClick={() => setIsHeroOfferOpen(true)}
+                    className="bg-emerald-100 hover:bg-white text-emerald-900 border border-white/20 px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 shadow-xl shadow-emerald-100/10"
+                  >
+                    <Gift size={20} />
+                    Ver Oferta Disponible
+                  </button>
+                ) : (
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-xl font-bold text-lg transition-all backdrop-blur-sm"
+                  >
+                    Hablar con un Especialista
+                  </a>
+                )}
               </div>
             </div>
 
@@ -367,6 +427,23 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
             </div>
           </div>
         </div>
+
+        {/* Ofertas Especiales (Venta Cruzada directa) movida bajo Detalles */}
+        {relatedBundles.length > 0 && (
+          <div className="mt-16 bg-emerald-50/60 p-8 md:p-12 rounded-[3rem] border border-emerald-100 shadow-xl">
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              <h2 className="text-sm font-black text-amber-500 uppercase tracking-widest mb-2">Promoción Especial Activa</h2>
+              <h3 className="text-3xl font-bold text-slate-900 leading-tight">Aproveche esta oferta junto a su tratamiento</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
+              {relatedBundles.map(bundle => (
+                  <div key={bundle.id} className="max-w-sm mx-auto w-full">
+                      <BundleCard offer={bundle} isFashion={false} />
+                  </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Testimonials Section */}
@@ -375,6 +452,30 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
         reviews={reviews} 
         onReviewAdded={fetchReviews} 
       />
+
+      {/* Sugerencias de Paquetes Ofertados */}
+      {suggestedBundles.length > 0 && (
+        <div className="bg-slate-50 py-20 border-t border-slate-100">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+              <div>
+                <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Sugerencias Adicionales</h2>
+                <h3 className="text-3xl font-bold text-slate-900 leading-tight">Productos o paquetes que te pueden interesar</h3>
+              </div>
+              {onGoToOffers && (
+                <button onClick={onGoToOffers} className="text-emerald-600 font-bold hover:text-emerald-700 flex items-center gap-2 group">
+                  Ver más paquetes <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 justify-center">
+               {suggestedBundles.map(bundle => (
+                   <BundleCard key={bundle.id} offer={bundle} isFashion={false} />
+               ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Recommended Supplements Strategy Section */}
 
@@ -442,6 +543,15 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack }) =>
           </div>
         </div>
       </div>
+
+      {relatedBundles.length > 0 && (
+        <BundleModal 
+          offer={relatedBundles[0]} 
+          isFashion={false} 
+          isOpen={isHeroOfferOpen} 
+          onClose={() => setIsHeroOfferOpen(false)} 
+        />
+      )}
     </div>
   );
 };
