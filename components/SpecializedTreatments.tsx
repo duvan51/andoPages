@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useTenant } from '../hooks/useTenant';
 import { MOCK_SERVICES } from '../constants/mockData';
+import OptimizedImage from './shared/OptimizedImage';
 
 interface Treatment {
   id: string;
@@ -119,8 +120,13 @@ const SpecializedTreatments: React.FC<SpecializedTreatmentsProps> = ({ onService
         </div>
         <div className="flex-shrink-0 relative hidden lg:block">
           <div className="w-80 h-80 rounded-full border-[12px] border-emerald-900/50 overflow-hidden">
-            <img src="https://picsum.photos/seed/doctor-1/400/400" alt="Doctor" className="w-full h-full object-cover" />
+            <OptimizedImage src="https://picsum.photos/seed/doctor-1/400/400" alt="Doctor" width={400} className="w-full h-full object-cover" />
           </div>
+          <div className="absolute -bottom-4 -right-4 bg-emerald-500 text-emerald-950 px-6 py-2 rounded-full font-bold shadow-xl">
+            {isFashion ? 'Asesoría VIP' : isTech ? 'Soporte Senior' : 'Médicos Expertos'}
+          </div>
+        </div>
+      </div>
           <div className="absolute -bottom-4 -right-4 bg-emerald-500 text-emerald-950 px-6 py-2 rounded-full font-bold shadow-xl">
             {isFashion ? 'Asesoría VIP' : isTech ? 'Soporte Senior' : 'Médicos Expertos'}
           </div>

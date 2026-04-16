@@ -6,6 +6,7 @@ import { useTenant } from '../hooks/useTenant';
 import { useCart } from '../context/CartContext';
 import { MOCK_PRODUCTS } from '../constants/mockData';
 import { formatPriceCOP } from '../utils/format';
+import OptimizedImage from './shared/OptimizedImage';
 import ProductQuickView from './shared/ProductQuickView';
 
 interface FashionCollectionsProps {
@@ -79,10 +80,11 @@ const FashionCollections: React.FC<FashionCollectionsProps> = ({ onSelect }) => 
                         >
                             <div className="relative aspect-[3/4] overflow-hidden rounded-[2rem] mb-6 bg-slate-50">
                                 {p.imageUrl ? (
-                                    <img
+                                    <OptimizedImage
                                         src={p.imageUrl}
                                         alt={p.title}
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                        width={400}
+                                        className="w-full h-full transition-transform duration-700 group-hover:scale-110"
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-200">

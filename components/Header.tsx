@@ -173,22 +173,24 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onServicesClick, onTreatme
         </nav>
 
         <div className="flex items-center gap-2 md:gap-4">
-          {/* Cart Button */}
-          <button 
-            onClick={() => setIsCartOpen(true)}
-            className={`relative p-2.5 rounded-full transition-all active:scale-95 group border ${
-              isScrolled 
-                ? 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-slate-100' 
-                : 'bg-white/10 border-white/10 text-white hover:bg-white/20'
-            }`}
-          >
-            <ShoppingBag size={20} className="transition-transform group-hover:scale-110" />
-            {totalItems > 0 && (
-              <span className={`absolute -top-1 -right-1 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white animate-pulse ${isFashion ? 'bg-slate-900' : 'bg-red-500'}`}>
-                {totalItems}
-              </span>
-            )}
-          </button>
+          {/* Cart Button - Only for Fashion */}
+          {isFashion && (
+            <button 
+              onClick={() => setIsCartOpen(true)}
+              className={`relative p-2.5 rounded-full transition-all active:scale-95 group border ${
+                isScrolled 
+                  ? 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-slate-100' 
+                  : 'bg-white/10 border-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              <ShoppingBag size={20} className="transition-transform group-hover:scale-110" />
+              {totalItems > 0 && (
+                <span className={`absolute -top-1 -right-1 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white animate-pulse ${isFashion ? 'bg-slate-900' : 'bg-red-500'}`}>
+                  {totalItems}
+                </span>
+              )}
+            </button>
+          )}
 
           <button
             onClick={onBookingClick}

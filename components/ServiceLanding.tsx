@@ -102,9 +102,10 @@ const GalleryLightbox: React.FC<GalleryLightboxProps> = ({ media, initialIndex, 
             </div>
           ) : (
             <div className="relative max-h-[85vh] md:max-h-[90vh]">
-              <img 
+              <OptimizedImage
                 src={currentMedia.url} 
                 alt={`Gallery item ${currentIndex + 1}`} 
+                width={1200}
                 className="max-h-[85vh] md:max-h-[90vh] w-auto max-w-[95vw] object-contain rounded-xl md:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)]"
               />
             </div>

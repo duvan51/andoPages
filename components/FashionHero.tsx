@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { ShoppingBag, ArrowRight, Star } from 'lucide-react';
 import { useTenant } from '../hooks/useTenant';
+import OptimizedImage from './shared/OptimizedImage';
 
 interface FashionHeroProps {
     onShopClick: () => void;
@@ -56,12 +56,14 @@ const FashionHero: React.FC<FashionHeroProps> = ({ onShopClick }) => {
 
                 <div className="relative">
                     <div className="relative z-10 animate-float">
-                        <img
+                        <OptimizedImage
                             src={config.imageUrl || (tenant?.slug === 'camisas-crist'
                                 ? "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=1000"
                                 : "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1000"
                             )}
                             alt="Fashion Collection"
+                            width={1000}
+                            priority={true}
                             className="w-full h-auto rounded-[4rem] shadow-2xl grayscale hover:grayscale-0 transition-all duration-1000"
                         />
                         {/* Interactive Tag */}

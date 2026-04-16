@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useTenant } from '../hooks/useTenant';
 import { MOCK_SERVICES } from '../constants/mockData';
+import OptimizedImage from './shared/OptimizedImage';
 
 interface Service {
   id: string;
@@ -81,9 +82,10 @@ const Services: React.FC<ServicesProps> = ({ onServiceSelect, onShowAll }) => {
             onClick={() => onServiceSelect(service.id)}
           >
             <div className="relative h-64 overflow-hidden">
-              <img
+              <OptimizedImage
                 src={service.imageUrl || 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=1000'}
                 alt={service.title}
+                width={500}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
             </div>

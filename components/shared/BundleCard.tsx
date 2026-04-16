@@ -5,6 +5,7 @@ import { formatPriceCOP } from '../../utils/format';
 import { getWhatsAppLeadUrl } from '../../utils/whatsapp';
 import { UrgencyBadge } from './UrgencyBadge';
 import { useCart } from '../../context/CartContext';
+import OptimizedImage from './OptimizedImage';
 
 export interface BundleProps {
     id: string;
@@ -57,12 +58,12 @@ export const BundleModal: React.FC<{ offer: BundleProps; isFashion: boolean; isO
                     <div className="md:w-1/2 relative shrink-0 min-h-[300px] md:min-h-full flex items-center justify-center border-r border-slate-100 overflow-hidden bg-white">
                         {/* Blurred background */}
                         <div className="absolute inset-0 z-[1] bg-slate-800">
-                            <img src={offer.imageUrl} className="w-full h-full object-cover opacity-70 blur-xl scale-125 saturate-150" alt="" />
+                            <OptimizedImage src={offer.imageUrl} alt="" width={100} className="w-full h-full opacity-70 blur-xl scale-125 saturate-150" />
                             <div className="absolute inset-0 bg-black/20"></div>
                         </div>
                         
                         {/* Foreground Image */}
-                        <img src={offer.imageUrl} className="w-full h-full object-cover md:object-contain relative z-[2] drop-shadow-2xl md:p-8" alt={offer.title} />
+                        <OptimizedImage src={offer.imageUrl} alt={offer.title} width={600} objectFit="contain" className="w-full h-full relative z-[2] drop-shadow-2xl md:p-8" />
                         
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent md:hidden z-[3]"></div>
                         {offer.expiry_date && (
@@ -105,16 +106,18 @@ export const BundleModal: React.FC<{ offer: BundleProps; isFashion: boolean; isO
                         </div>
 
                         <div className="flex flex-col gap-3">
-                            <button
-                                onClick={handleAddToCart}
-                                className={`w-full flex justify-center items-center gap-3 px-8 py-4 rounded-2xl font-black text-lg transition-all active:scale-[0.98] ${isFashion
-                                    ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-900/20'
-                                    : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-600/20'
-                                    }`}
-                            >
-                                <ShoppingBag size={22} />
-                                Agregar al carrito
-                            </button>
+                            {isFashion && (
+                                <button
+                                    onClick={handleAddToCart}
+                                    className={`w-full flex justify-center items-center gap-3 px-8 py-4 rounded-2xl font-black text-lg transition-all active:scale-[0.98] ${isFashion
+                                        ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-900/20'
+                                        : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-600/20'
+                                        }`}
+                                >
+                                    <ShoppingBag size={22} />
+                                    Agregar al carrito
+                                </button>
+                            )}
 
                             <a
                                 href={whatsappUrl}
@@ -156,9 +159,10 @@ const BundleCard: React.FC<BundleCardProps> = ({ offer, isFashion, onServiceSele
             >
                 {offer.imageUrl && (
                     <div className="w-full aspect-square relative shrink-0 overflow-hidden bg-slate-50 border-b border-slate-50">
-                        <img
+                        <OptimizedImage
                             src={offer.imageUrl}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            width={400}
+                            className="w-full h-full transition-transform duration-700 group-hover:scale-105"
                             alt={offer.title}
                         />
                         <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>

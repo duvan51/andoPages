@@ -19,6 +19,8 @@ const ProductQuickView: React.FC<ProductQuickViewProps> = ({ product, isOpen, on
   const { tenant } = useTenant();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  const isFashion = tenant?.business_type === 'fashion';
+
   if (!isOpen || !product) return null;
 
   const images = [product.imageUrl, ...(product.secondary_images || [])];
@@ -137,13 +139,15 @@ const ProductQuickView: React.FC<ProductQuickViewProps> = ({ product, isOpen, on
             </div>
 
             <div className="grid gap-3">
-              <button 
-                onClick={handleAddToCart}
-                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-slate-900/10 active:scale-[0.98]"
-              >
-                <ShoppingBag size={18} />
-                Agregar al carrito
-              </button>
+              {isFashion && (
+                <button 
+                  onClick={handleAddToCart}
+                  className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-slate-900/10 active:scale-[0.98]"
+                >
+                  <ShoppingBag size={18} />
+                  Agregar al carrito
+                </button>
+              )}
 
               <a 
                 href={whatsappUrl}

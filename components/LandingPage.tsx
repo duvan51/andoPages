@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import ContactFormV2 from './ContactFormV2';
 import { formatPriceCOP } from '../utils/format';
 import { useTenant } from '../hooks/useTenant';
+import OptimizedImage from './shared/OptimizedImage';
 
 interface LandingPageProps {
     slug?: string;
@@ -486,8 +487,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                         <div className="absolute -inset-4 bg-emerald-500/10 rounded-[3rem] blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
                                         {landing.config?.hero?.videoThumbnail ? (
                                             <div className="relative cursor-pointer" onClick={() => window.open(landing.config.hero.videoUrl, '_blank')}>
-                                                <img
+                                                <OptimizedImage
                                                     src={landing.config.hero.videoThumbnail}
+                                                    width={800}
+                                                    priority={true}
                                                     className={cn("rounded-[2.5rem] shadow-2xl border-4 md:border-8 border-white object-cover aspect-[4/5] w-full")}
                                                     alt="Video Thumbnail"
                                                 />
@@ -501,8 +504,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                                 </div>
                                             </div>
                                         ) : (
-                                            <img
+                                            <OptimizedImage
                                                 src={landing.config?.hero?.imageUrl || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1000'}
+                                                width={800}
+                                                priority={true}
                                                 className={cn("relative rounded-[2.5rem] shadow-2xl border-4 md:border-8 border-white object-cover aspect-[4/5] w-full")}
                                                 alt="Hero"
                                             />
@@ -543,7 +548,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                         <div key={i} className={cn(`group p-8 md:p-10 bg-slate-50 rounded-[2.5rem] border border-transparent hover:border-slate-200 transition-all hover:bg-white hover:shadow-2xl flex flex-col ${getAlignment(landing.config?.styles?.pasAlignment)} ${getVisClass(`pasProb${i + 1}`)}`)}>
                                             {image ? (
                                                 <div className="w-full aspect-video rounded-3xl overflow-hidden mb-8 shadow-sm">
-                                                    <img src={image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={text} />
+                                                    <OptimizedImage src={image} width={600} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={text || ''} />
                                                 </div>
                                             ) : (
                                                 <div className={`w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-3xl mb-8 shadow-sm group-hover:bg-red-50 group-hover:scale-110 transition-all`}>⚠️</div>
@@ -591,7 +596,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                     </div>
                                     <div className={cn("md:w-1/2 w-full")}>
                                         {s.image && (
-                                            <img src={s.image} className={cn("rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl w-full aspect-video object-cover")} alt={s.title} />
+                                            <OptimizedImage src={s.image} width={800} className={cn("rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl w-full aspect-video object-cover")} alt={s.title} />
                                         )}
                                     </div>
                                 </div>
@@ -643,7 +648,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                         className={cn("carousel-item min-w-[80%] md:min-w-[400px] rounded-[2.5rem] overflow-hidden shadow-xl snap-center shrink-0 transition-transform duration-500 hover:scale-[1.02]")}
                                     >
                                         <div className="w-full h-full">
-                                            <img src={img} className="w-full h-full object-cover" alt={`Carousel ${i}`} />
+                                            <OptimizedImage src={img} width={600} className="w-full h-full object-cover" alt={`Carousel ${i}`} />
                                         </div>
                                     </div>
                                 ))}
@@ -679,7 +684,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                         key={i}
                                         className={cn(`rounded-[2rem] overflow-hidden shadow-lg transition-all duration-500 hover:shadow-2xl ${i % 5 === 0 ? 'col-span-2 row-span-2' : ''}`)}
                                     >
-                                        <img src={img} className={cn("w-full h-full object-cover aspect-square md:aspect-auto")} alt={`Collage ${i}`} />
+                                        <OptimizedImage src={img} width={i % 5 === 0 ? 800 : 400} className={cn("w-full h-full object-cover aspect-square md:aspect-auto")} alt={`Collage ${i}`} />
                                     </div>
                                 ))}
                             </div>
@@ -713,7 +718,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                 </p>
                                 <div className={cn("flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-30 grayscale hover:grayscale-0 transition-all")}>
                                     {(landing.config.socialProof.logos || []).map((logo: string, i: number) => logo && (
-                                        <img key={i} src={logo} className={cn("h-8 md:h-12 w-auto")} alt="Partner" />
+                                        <OptimizedImage key={i} src={logo} width={200} className={cn("h-8 md:h-12 w-auto")} alt="Partner" />
                                     ))}
                                 </div>
                             </div>

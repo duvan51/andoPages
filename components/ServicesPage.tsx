@@ -7,6 +7,7 @@ import { useServices } from '../hooks/useServices';
 import { useTenant } from '../hooks/useTenant';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
+import OptimizedImage from './shared/OptimizedImage';
 import ProductQuickView from './shared/ProductQuickView';
 
 interface ServicesPageProps {
@@ -119,10 +120,11 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onBack }) 
                         >
                             {/* Image Container */}
                             <div className="relative aspect-square overflow-hidden bg-slate-100">
-                                <img
+                                <OptimizedImage
                                     src={treatment.imageUrl}
                                     alt={treatment.title}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    width={400}
+                                    className="w-full h-full transition-transform duration-700 group-hover:scale-110"
                                 />
                                 <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
                                     <span className={`bg-white/90 backdrop-blur-sm ${isFashion ? 'text-slate-900' : 'text-emerald-600'} px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-slate-100 shadow-sm z-10`}>
@@ -147,22 +149,24 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onBack }) 
                                     >
                                         <Eye size={18} />
                                     </button>
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            addToCart({
-                                                id: treatment.id,
-                                                title: treatment.title,
-                                                price: treatment.price || 0,
-                                                imageUrl: treatment.imageUrl,
-                                                type: 'product',
-                                                companyId: tenant?.id || ''
-                                            });
-                                        }}
-                                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-900 shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75"
-                                    >
-                                        <Plus size={20} />
-                                    </button>
+                                    {isFashion && (
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                addToCart({
+                                                    id: treatment.id,
+                                                    title: treatment.title,
+                                                    price: treatment.price || 0,
+                                                    imageUrl: treatment.imageUrl,
+                                                    type: 'product',
+                                                    companyId: tenant?.id || ''
+                                                });
+                                            }}
+                                            className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-900 shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75"
+                                        >
+                                            <Plus size={20} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
