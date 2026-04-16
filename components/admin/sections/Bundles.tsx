@@ -87,7 +87,11 @@ const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
 
     const handleDelete = async (id: string) => {
         if (!confirm('¿Eliminar este paquete para siempre?')) return;
-        const { error } = await supabase.from('bundles').delete().eq('id', id);
+        const { error } = await supabase
+            .from('bundles')
+            .delete()
+            .eq('id', id)
+            .eq('company_id', companyId);
         if (!error) fetchBundles();
     };
 

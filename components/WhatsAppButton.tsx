@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import LocationSelectorModal from './LocationSelectorModal';
+import { useTenant } from '../hooks/useTenant';
 
 const WhatsAppButton: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { tenant } = useTenant();
+  const config = (tenant as any)?.config?.whatsapp || {};
+  const isTech = tenant?.template_id === 'services-tech';
+  const isFashion = tenant?.business_type === 'fashion';
+
+  if (config.enabled === false) return null;
+
+  const labelText = config.label || (isFashion ? 'Asesoría de Moda' : isTech ? 'Soporte Técnico' : 'Atención WhatsApp');
 
   return (
     <>
@@ -19,7 +28,7 @@ const WhatsAppButton: React.FC = () => {
           </div>
           <div className="hidden md:block">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Escríbanos</p>
-            <p className="text-sm font-black text-slate-900 leading-none">WhatsApp Médicos</p>
+            <p className="text-sm font-black text-slate-900 leading-none">{labelText}</p>
           </div>
         </div>
       </button>
@@ -27,6 +36,7 @@ const WhatsAppButton: React.FC = () => {
       <LocationSelectorModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        customMessage={config.message}
       />
     </>
   );

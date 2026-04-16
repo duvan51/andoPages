@@ -58,9 +58,17 @@ const Services: React.FC<ServicesProps> = ({ onServiceSelect, onShowAll }) => {
   return (
     <div className="container mx-auto px-4 md:px-6">
       <div className="text-center max-w-3xl mx-auto mb-16">
-        <h2 className="text-sm font-bold text-emerald-600 uppercase tracking-widest mb-3">Nuestros Pilares</h2>
-        <h3 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">Servicios para su Bienestar</h3>
-        <p className="text-lg text-slate-600">
+        <h2 className={`text-sm font-bold uppercase tracking-widest mb-3 ${
+          tenant?.template_id === 'services-tech' ? 'text-cyan-400' : 'text-emerald-600'
+        }`}>Nuestros Pilares</h2>
+        <h3 className={`text-4xl md:text-5xl font-bold mb-6 ${
+          tenant?.template_id === 'services-tech' ? 'text-white' : 'text-slate-900'
+        }`}>
+          {tenant?.template_id === 'services-tech' ? 'Soluciones de Vanguardia' : 'Servicios para su Bienestar'}
+        </h3>
+        <p className={`text-lg ${
+          tenant?.template_id === 'services-tech' ? 'text-slate-400' : 'text-slate-600'
+        }`}>
           Descubra soluciones personalizadas diseñadas específicamente para sus necesidades.
         </p>
       </div>
@@ -80,14 +88,24 @@ const Services: React.FC<ServicesProps> = ({ onServiceSelect, onShowAll }) => {
               />
             </div>
 
-            <div className="p-8">
-              <p className="text-sm font-bold text-emerald-600 mb-2 uppercase tracking-wide">{service.subtitle || 'Servicio Premium'}</p>
-              <h4 className="text-2xl font-bold text-slate-900 mb-4">{service.title}</h4>
-              <p className="text-slate-500 mb-8 leading-relaxed line-clamp-3">
+            <div className={`p-8 ${tenant?.template_id === 'services-tech' ? 'bg-[#11141d]' : 'bg-white'}`}>
+              <p className={`text-sm font-bold mb-2 uppercase tracking-wide ${
+                tenant?.template_id === 'services-tech' ? 'text-cyan-400' : 'text-emerald-600'
+              }`}>{service.subtitle || 'Servicio Premium'}</p>
+              <h4 className={`text-2xl font-bold mb-4 ${
+                tenant?.template_id === 'services-tech' ? 'text-white' : 'text-slate-900'
+              }`}>{service.title}</h4>
+              <p className={`mb-8 leading-relaxed line-clamp-3 ${
+                tenant?.template_id === 'services-tech' ? 'text-slate-400' : 'text-slate-500'
+              }`}>
                 {service.heroDescription || 'Experimente un nivel superior de atención y resultados con nuestros especialistas.'}
               </p>
               <button
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg active:scale-[0.98]"
+                className={`w-full font-bold py-4 rounded-xl transition-all shadow-lg active:scale-[0.98] ${
+                  tenant?.template_id === 'services-tech' 
+                    ? 'bg-cyan-600 hover:bg-cyan-700 text-white shadow-cyan-900/40' 
+                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
+                }`}
                 onClick={(e) => {
                   e.stopPropagation();
                   onServiceSelect(service.id);
@@ -103,7 +121,11 @@ const Services: React.FC<ServicesProps> = ({ onServiceSelect, onShowAll }) => {
       <div className="text-center">
         <button
           onClick={onShowAll}
-          className="inline-flex items-center gap-2 bg-white text-emerald-700 border-2 border-emerald-100 px-10 py-4 rounded-2xl font-bold text-lg hover:bg-emerald-50 transition-all shadow-xl shadow-emerald-100/20 group"
+          className={`inline-flex items-center gap-2 border-2 px-10 py-4 rounded-2xl font-bold text-lg transition-all group ${
+            tenant?.template_id === 'services-tech'
+              ? 'bg-[#11141d] text-cyan-400 border-cyan-900/50 hover:bg-[#1a1f2c] shadow-xl shadow-black/40'
+              : 'bg-white text-emerald-700 border-emerald-100 hover:bg-emerald-50 shadow-xl shadow-emerald-100/20'
+          }`}
         >
           Ver Todos los Servicios
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">

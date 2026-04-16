@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowUpRight, Package } from 'lucide-react';
+import { ArrowUpRight, Package, Plus, Eye } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTenant } from '../hooks/useTenant';
+import { useCart } from '../context/CartContext';
 import { MOCK_PRODUCTS } from '../constants/mockData';
 import { formatPriceCOP } from '../utils/format';
+import ProductQuickView from './shared/ProductQuickView';
 
 interface FashionCollectionsProps {
     onSelect: (id: string) => void;
@@ -12,8 +14,10 @@ interface FashionCollectionsProps {
 
 const FashionCollections: React.FC<FashionCollectionsProps> = ({ onSelect }) => {
     const { tenant } = useTenant();
+    const { addToCart } = useCart();
     const [products, setProducts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedQuickView, setSelectedQuickView] = useState<any | null>(null);
 
     useEffect(() => {
         if (tenant) {
@@ -85,10 +89,34 @@ const FashionCollections: React.FC<FashionCollectionsProps> = ({ onSelect }) => 
                                         <Package size={64} strokeWidth={1} />
                                     </div>
                                 )}
-                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-black -translate-y-10 group-hover:translate-y-0 transition-transform duration-500">
-                                        <ArrowUpRight size={32} />
-                                    </div>
+                                <div className="absolute inset-0 bg-slate-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                
+                                <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-20">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedQuickView(p);
+                                        }}
+                                        className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-900 shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-slate-50 active:scale-90"
+                                    >
+                                        <Eye size={20} />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            addToCart({
+                                                id: p.id,
+                                                title: p.title,
+                                                price: p.price,
+                                                imageUrl: p.imageUrl,
+                                                type: 'product',
+                                                companyId: tenant?.id || ''
+                                            });
+                                        }}
+                                        className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-900 shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75 hover:bg-slate-50 active:scale-90"
+                                    >
+                                        <Plus size={24} />
+                                    </button>
                                 </div>
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 mb-1">{p.title}</h3>
@@ -100,6 +128,13 @@ const FashionCollections: React.FC<FashionCollectionsProps> = ({ onSelect }) => 
                     ))}
                 </div>
             </div>
+
+            <ProductQuickView 
+                product={selectedQuickView}
+                isOpen={!!selectedQuickView}
+                onClose={() => setSelectedQuickView(null)}
+                onViewDetails={onSelect}
+            />
         </section>
     );
 };

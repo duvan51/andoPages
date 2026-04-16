@@ -12,6 +12,7 @@ import LocationsManager from './admin/sections/Locations';
 import BundlesManager from './admin/sections/Bundles';
 import AdminAuth from './admin/shared/AdminAuth';
 import ReviewsManager from './admin/sections/ReviewsManager';
+import FormsManager from './admin/sections/FormsManager';
 import { AdminTab } from './admin/layout/Sidebar';
 
 const AdminDashboard: React.FC = () => {
@@ -284,6 +285,7 @@ const AdminDashboard: React.FC = () => {
             {activeTab === 'packages' && <BundlesManager companyId={currentCompanyId} />}
             {activeTab === 'offers' && <BundlesManager companyId={currentCompanyId} />}
             {activeTab === 'reviews' && <ReviewsManager companyId={currentCompanyId} />}
+            {activeTab === 'forms' && <FormsManager companyId={currentCompanyId} />}
             {activeTab === 'companies' && isSuperAdmin && (
                 <CompanyManager
                     onSelectCompany={handleCompanySelect}

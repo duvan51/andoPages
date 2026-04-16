@@ -7,6 +7,7 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
   height?: number;
   className?: string;
   priority?: boolean;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
 }
 
 /**
@@ -23,13 +24,19 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   height, 
   className = '', 
   priority = false,
+  objectFit = 'cover',
   style,
   ...props 
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [optimizedSrc, setOptimizedSrc] = useState(src);
+  const [optimizedSrc, setOptimizedSrc] = useState(src || '');
 
   useEffect(() => {
+    if (!src) {
+      setOptimizedSrc('');
+      return;
+    }
+
     // 1. Soporte para Cloudinary (Prioridad si se detecta)
     if (src.includes('res.cloudinary.com')) {
       try {
@@ -88,7 +95,12 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
         onLoad={() => setIsLoaded(true)}
-        className={`w-full h-full object-cover transition-all duration-700 ease-in-out ${
+        className={`w-full h-full transition-all duration-700 ease-in-out ${
+          objectFit === 'cover' ? 'object-cover' : 
+          objectFit === 'contain' ? 'object-contain' : 
+          objectFit === 'fill' ? 'object-fill' : 
+          objectFit === 'none' ? 'object-none' : 'object-scale-down'
+        } ${
           isLoaded ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-105 blur-lg'
         }`}
         {...props}

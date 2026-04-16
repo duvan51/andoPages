@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Tag, Clock, ArrowRight, X, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Tag, Clock, ArrowRight, X, Sparkles, CheckCircle2, ShoppingBag } from 'lucide-react';
 import { formatPriceCOP } from '../../utils/format';
 import { getWhatsAppLeadUrl } from '../../utils/whatsapp';
 import { UrgencyBadge } from './UrgencyBadge';
+import { useCart } from '../../context/CartContext';
 
 export interface BundleProps {
     id: string;
@@ -23,9 +24,22 @@ interface BundleCardProps {
 }
 
 export const BundleModal: React.FC<{ offer: BundleProps; isFashion: boolean; isOpen: boolean; onClose: () => void; onServiceSelect?: (id: string) => void }> = ({ offer, isFashion, isOpen, onClose, onServiceSelect }) => {
+    const { addToCart } = useCart();
     if (!isOpen) return null;
 
     const whatsappUrl = getWhatsAppLeadUrl({ customMessage: `Hola, me interesa adquirir la oferta especial: ${offer.title}` });
+
+    const handleAddToCart = () => {
+        addToCart({
+            id: offer.id,
+            title: offer.title,
+            price: parseInt(offer.bundle_price),
+            imageUrl: offer.imageUrl || '',
+            type: 'bundle',
+            companyId: '' // Will be handled by context or passed down
+        });
+        onClose();
+    };
 
     return createPortal(
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 md:p-6">
@@ -91,16 +105,24 @@ export const BundleModal: React.FC<{ offer: BundleProps; isFashion: boolean; isO
                         </div>
 
                         <div className="flex flex-col gap-3">
-                            <a
-                                href={whatsappUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className={`w-full flex justify-center items-center gap-2 px-8 py-4 rounded-2xl font-black text-lg transition-all active:scale-[0.98] ${isFashion
+                            <button
+                                onClick={handleAddToCart}
+                                className={`w-full flex justify-center items-center gap-3 px-8 py-4 rounded-2xl font-black text-lg transition-all active:scale-[0.98] ${isFashion
                                     ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-900/20'
                                     : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-600/20'
                                     }`}
                             >
-                                Adquirir ahora <ArrowRight size={20} />
+                                <ShoppingBag size={22} />
+                                Agregar al carrito
+                            </button>
+
+                            <a
+                                href={whatsappUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full flex justify-center items-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors"
+                            >
+                                Consultar por WhatsApp <ArrowRight size={20} />
                             </a>
 
                             {offer.product_id && onServiceSelect && (
@@ -109,7 +131,7 @@ export const BundleModal: React.FC<{ offer: BundleProps; isFashion: boolean; isO
                                         onClose();
                                         onServiceSelect(offer.product_id!);
                                     }}
-                                    className="w-full flex justify-center items-center px-8 py-4 rounded-2xl font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors"
+                                    className="w-full flex justify-center items-center px-8 py-4 rounded-2xl font-bold text-slate-400 bg-transparent hover:text-slate-600 transition-colors text-xs uppercase tracking-widest"
                                 >
                                     Saber más del producto
                                 </button>

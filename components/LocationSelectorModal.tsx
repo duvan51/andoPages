@@ -8,9 +8,10 @@ interface LocationSelectorModalProps {
     isOpen: boolean;
     onClose: () => void;
     serviceTitle?: string;
+    customMessage?: string;
 }
 
-const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ isOpen, onClose, serviceTitle }) => {
+const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ isOpen, onClose, serviceTitle, customMessage }) => {
     const { tenant } = useTenant();
     const [locations, setLocations] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
@@ -40,7 +41,8 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ isOpen, o
         const url = getWhatsAppLeadUrl({
             serviceTitle,
             location: `${loc.city} - ${loc.name}`,
-            phoneNumber: loc.phone
+            phoneNumber: loc.phone,
+            customMessage: customMessage
         });
         window.open(url, '_blank');
         onClose();

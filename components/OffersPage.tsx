@@ -81,7 +81,9 @@ const OffersPage: React.FC<OffersPageProps> = ({ onBack, onServiceSelect }) => {
                             {isFashion ? 'Todas Nuestras Promociones' : 'Explora Nuestros Paquetes'}
                         </h1>
                         <p className="text-slate-500 font-medium text-lg mt-6 max-w-xl">
-                            Hemos diseñado estas combinaciones exclusivas pensadas en obtener los mejores resultados al mejor costo.
+                            {isFashion 
+                                ? 'Hemos curado estas colecciones exclusivas para que lleves lo mejor de nuestra moda con beneficios especiales.'
+                                : 'Hemos diseñado estas combinaciones exclusivas pensadas en obtener los mejores resultados al mejor costo.'}
                         </p>
                     </div>
                 </div>

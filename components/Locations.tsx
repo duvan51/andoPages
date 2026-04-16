@@ -98,7 +98,7 @@ const Locations: React.FC = () => {
 
           <div className="mt-12 p-6 bg-emerald-100/50 rounded-2xl border border-emerald-200">
             <p className="text-sm font-medium text-emerald-800 leading-relaxed">
-              Estamos expandiéndonos continuamente para llevar salud integral a más rincones de Colombia.
+              {tenant?.business_type === 'fashion' ? 'Estamos expandiéndonos para llevar la mejor moda a más rincones del país.' : 'Estamos expandiéndonos continuamente para llegar a más rincones de Colombia.'}
             </p>
           </div>
         </div>

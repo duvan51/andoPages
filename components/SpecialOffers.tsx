@@ -57,18 +57,31 @@ const SpecialOffers: React.FC<SpecialOffersProps> = ({ onServiceSelect }) => {
     const isFashion = tenant?.business_type === 'fashion';
 
     return (
-        <section id="ofertas" className={`py-24 ${isFashion ? 'bg-slate-50' : 'bg-emerald-50/30'}`}>
+        <section id="ofertas" className={`py-24 ${
+            isFashion ? 'bg-slate-50' : 
+            tenant?.template_id === 'services-tech' ? 'bg-[#0a0c10]' : 'bg-emerald-50/30'
+        }`}>
             <div className="container mx-auto px-6">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
                     <div className="max-w-2xl">
                         <div className="flex items-center gap-2 mb-4">
-                            <Sparkles className={isFashion ? 'text-slate-900' : 'text-emerald-600'} size={20} />
-                            <span className={`text-sm font-black uppercase tracking-[0.2em] ${isFashion ? 'text-slate-500' : 'text-emerald-600'}`}>
-                                Promociones Exclusivas
+                            <Sparkles className={
+                                isFashion ? 'text-slate-900' : 
+                                tenant?.template_id === 'services-tech' ? 'text-cyan-400' : 'text-emerald-600'
+                            } size={20} />
+                            <span className={`text-sm font-black uppercase tracking-[0.2em] ${
+                                isFashion ? 'text-slate-500' : 
+                                tenant?.template_id === 'services-tech' ? 'text-slate-400' : 'text-emerald-600'
+                            }`}>
+                                {tenant?.config?.offers?.subtitle || (tenant?.template_id === 'services-tech' ? 'Soluciones Especiales' : 'Promociones Exclusivas')}
                             </span>
                         </div>
-                        <h2 className={`text-4xl md:text-5xl font-black leading-tight ${isFashion ? 'font-serif text-slate-900' : 'text-slate-900'}`}>
-                            {isFashion ? 'Ofertas de Temporada' : 'Paquetes de Bienestar'}
+                        <h2 className={`text-4xl md:text-5xl font-black leading-tight ${
+                            isFashion ? 'font-serif text-slate-900' : 
+                            tenant?.template_id === 'services-tech' ? 'text-white' : 'text-slate-900'
+                        }`}>
+                            {tenant?.config?.offers?.title || (isFashion ? 'Ofertas de Temporada' : 
+                             tenant?.template_id === 'services-tech' ? 'Planes de Desarrollo' : 'Promociones Especiales')}
                         </h2>
                     </div>
                 </div>

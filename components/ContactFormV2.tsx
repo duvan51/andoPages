@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useTenant } from '../hooks/useTenant';
 
 interface ContactFormV2Props {
     source?: string;
@@ -10,6 +11,8 @@ interface ContactFormV2Props {
 }
 
 const ContactFormV2: React.FC<ContactFormV2Props> = ({ source = 'Landing Page', buttonStyle, onSuccess, isMobilePreview, buttonText }) => {
+    const { tenant } = useTenant();
+    const isTech = tenant?.template_id === 'services-tech';
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -77,7 +80,9 @@ const ContactFormV2: React.FC<ContactFormV2Props> = ({ source = 'Landing Page', 
             <div className={cn("p-6 md:p-8 rounded-[2rem] md:rounded-3xl text-center border-2 animate-scale-in")} style={{ backgroundColor: 'white', borderColor: 'var(--primary-color)' }}>
                 <div className="text-4xl mb-4">✅</div>
                 <h3 className="text-2xl font-black text-slate-900 mb-2">¡Solicitud Enviada!</h3>
-                <p className="text-slate-600 font-medium italic">En breve un especialista se pondrá en contacto contigo.</p>
+                <p className="text-slate-600 font-medium italic">
+                    {isTech ? 'En breve un consultor técnico se pondrá en contacto contigo.' : 'En breve un especialista se pondrá en contacto contigo.'}
+                </p>
             </div>
         );
     }
@@ -127,7 +132,9 @@ const ContactFormV2: React.FC<ContactFormV2Props> = ({ source = 'Landing Page', 
                 </div>
             </div>
             <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mensaje (Opcional)</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                    {isTech ? 'Requerimientos Técnicos' : 'Mensaje (Opcional)'}
+                </label>
                 <textarea
                     rows={3}
                     className={cn("w-full bg-slate-50 p-4 rounded-2xl border-2 border-transparent focus:bg-white outline-none transition-all resize-none")}
@@ -135,7 +142,7 @@ const ContactFormV2: React.FC<ContactFormV2Props> = ({ source = 'Landing Page', 
                     onBlur={(e) => e.currentTarget.style.borderColor = 'transparent'}
                     value={formData.message}
                     onChange={e => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="¿Alguna duda o inquietud?"
+                    placeholder={isTech ? '¿Qué tipo de solución estás buscando?' : '¿Alguna duda o inquietud?'}
                 />
             </div>
             <button
@@ -143,7 +150,7 @@ const ContactFormV2: React.FC<ContactFormV2Props> = ({ source = 'Landing Page', 
                 className={cn("w-full text-white py-5 rounded-2xl font-black transition-all shadow-xl active:scale-[0.98]")}
                 style={{ ...buttonStyle, backgroundColor: 'var(--primary-color)' }}
             >
-                {status === 'loading' ? 'Enviando...' : (buttonText || '🚀 Solicitar Valoración Gratuita')}
+                {status === 'loading' ? 'Enviando...' : (buttonText || (isTech ? '🚀 Solicitar Consultoría Técnica' : '🚀 Solicitar Valoración Gratuita'))}
             </button>
             {status === 'error' && (
                 <p className="text-red-500 text-xs text-center font-bold">Hubo un error. Inténtalo de nuevo o contáctanos por WhatsApp.</p>

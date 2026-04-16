@@ -8,7 +8,9 @@ import { formatPriceCOP } from '../utils/format';
 import ReviewsSection from './ReviewsSection';
 import OptimizedImage from './shared/OptimizedImage';
 import BundleCard, { BundleModal } from './shared/BundleCard';
-import { X, ChevronLeft, ChevronRight, Play, Gift, Share2, Check } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Play, Gift, Share2, Check, ShoppingBag } from 'lucide-react';
+import { useTenant } from '../hooks/useTenant';
+import { useCart } from '../context/CartContext';
 
 interface GalleryLightboxProps {
   media: { url: string; type: 'image' | 'video' }[];
@@ -41,71 +43,77 @@ const GalleryLightbox: React.FC<GalleryLightboxProps> = ({ media, initialIndex, 
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-xl" onClick={onClose}></div>
+    <div className="fixed inset-0 z-[500] flex items-center justify-center p-2 md:p-10">
+      <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl transition-all" onClick={onClose}></div>
       
-      <div className="relative w-full max-w-6xl aspect-video rounded-3xl overflow-hidden shadow-2xl animate-scale-in">
-        <button 
-          onClick={onClose} 
-          className="absolute top-6 right-6 z-10 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full backdrop-blur-md transition-all active:scale-95"
-        >
-          <X size={24} />
-        </button>
+      {/* Botón de Cierre Superior */}
+      <button 
+        onClick={onClose} 
+        className="fixed top-6 right-6 z-[510] bg-white/10 hover:bg-white/20 text-white p-4 rounded-full backdrop-blur-md transition-all active:scale-95 shadow-2xl border border-white/10"
+      >
+        <X size={24} />
+      </button>
 
-        {media.length > 1 && (
-          <>
-            <button 
-              onClick={prev} 
-              className="absolute left-6 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white p-4 rounded-full backdrop-blur-md transition-all active:scale-95"
-            >
-              <ChevronLeft size={32} />
-            </button>
-            <button 
-              onClick={next} 
-              className="absolute right-6 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white p-4 rounded-full backdrop-blur-md transition-all active:scale-95"
-            >
-              <ChevronRight size={32} />
-            </button>
-          </>
-        )}
-
-        <div className="w-full h-full flex items-center justify-center">
-          {currentMedia.type === 'video' ? (
-            isYoutube(currentMedia.url) ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${getYoutubeId(currentMedia.url)}?autoplay=1`}
-                className="w-full h-full border-none"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            ) : isVimeo(currentMedia.url) ? (
-              <iframe
-                src={`https://player.vimeo.com/video/${currentMedia.url.split('/').pop()}?autoplay=1`}
-                className="w-full h-full border-none"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            ) : (
-              <video 
-                src={currentMedia.url} 
-                controls 
-                autoPlay 
-                className="max-h-full max-w-full object-contain"
-              />
-            )
-          ) : (
-            <OptimizedImage 
-              src={currentMedia.url} 
-              alt={`Gallery item ${currentIndex + 1}`} 
-              className="max-h-full max-w-full"
-              style={{ objectFit: 'contain' }}
-            />
-          )}
+      {/* Flechas de Navegación fijas a los lados de la pantalla */}
+      {media.length > 1 && (
+        <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 px-4 md:px-10 flex justify-between pointer-events-none z-[505]">
+          <button 
+            onClick={prev} 
+            className="pointer-events-auto bg-black/30 hover:bg-black/60 text-white p-4 md:p-6 rounded-full backdrop-blur-md transition-all active:scale-95 border border-white/5"
+          >
+            <ChevronLeft size={32} />
+          </button>
+          <button 
+            onClick={next} 
+            className="pointer-events-auto bg-black/30 hover:bg-black/60 text-white p-4 md:p-6 rounded-full backdrop-blur-md transition-all active:scale-95 border border-white/5"
+          >
+            <ChevronRight size={32} />
+          </button>
         </div>
+      )}
 
-        {/* Indicator */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full text-white font-bold text-sm">
-          {currentIndex + 1} / {media.length}
+      {/* Contenedor Adaptativo de Media */}
+      <div className="relative max-w-full max-h-full flex items-center justify-center animate-scale-in z-[502]">
+        <div className="relative group flex items-center justify-center">
+          {currentMedia.type === 'video' ? (
+            <div className="w-[90vw] md:w-[70vw] aspect-video rounded-2xl overflow-hidden shadow-2xl">
+              {isYoutube(currentMedia.url) ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${getYoutubeId(currentMedia.url)}?autoplay=1`}
+                  className="w-full h-full border-none"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              ) : isVimeo(currentMedia.url) ? (
+                <iframe
+                  src={`https://player.vimeo.com/video/${currentMedia.url.split('/').pop()}?autoplay=1`}
+                  className="w-full h-full border-none"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              ) : (
+                <video 
+                  src={currentMedia.url} 
+                  controls 
+                  autoPlay 
+                  className="w-full h-full object-contain bg-black"
+                />
+              )}
+            </div>
+          ) : (
+            <div className="relative max-h-[85vh] md:max-h-[90vh]">
+              <img 
+                src={currentMedia.url} 
+                alt={`Gallery item ${currentIndex + 1}`} 
+                className="max-h-[85vh] md:max-h-[90vh] w-auto max-w-[95vw] object-contain rounded-xl md:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+              />
+            </div>
+          )}
+
+          {/* Indicador de posición flotante */}
+          <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full text-white font-bold text-sm border border-white/5">
+            {currentIndex + 1} / {media.length}
+          </div>
         </div>
       </div>
     </div>,
@@ -120,6 +128,10 @@ interface ServiceLandingProps {
 }
 
 const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGoToOffers }) => {
+  const { tenant } = useTenant();
+  const { addToCart } = useCart();
+  const isTech = tenant?.template_id === 'services-tech';
+  const isFashion = tenant?.business_type === 'fashion';
   const { treatments, supplements, loading: servicesLoading } = useServices();
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
@@ -136,9 +148,11 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
   }, [serviceId]);
 
   const fetchSuggestedBundles = async () => {
+    if (!tenant?.id) return;
     const { data, error } = await supabase
       .from('bundles')
       .select('*')
+      .eq('company_id', tenant.id)
       .limit(10);
     
     if (!error && data) {
@@ -148,9 +162,11 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
   };
 
   const fetchRelatedBundles = async () => {
+    if (!tenant?.id) return;
     const { data, error } = await supabase
       .from('bundles')
       .select('*')
+      .eq('company_id', tenant.id)
       .eq('product_id', serviceId);
     
     if (!error && data) {
@@ -206,7 +222,7 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
   return (
     <div className="pt-24 pb-20 animate-fade-in">
       {/* Hero Section Landing */}
-      <div className="relative bg-emerald-950 text-white overflow-hidden py-24 md:py-32">
+      <div className={`relative ${isFashion ? 'bg-slate-950' : 'bg-emerald-950'} text-white overflow-hidden py-24 md:py-32`}>
         <div className="absolute inset-0 opacity-30">
           <OptimizedImage 
             src={service.imageUrl} 
@@ -214,17 +230,17 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
             alt={service.title} 
             priority={true}
           />
-          <div className="absolute inset-0 bg-emerald-950/80"></div>
+          <div className={`absolute inset-0 ${isFashion ? 'bg-slate-950/80' : 'bg-emerald-950/80'}`}></div>
         </div>
 
         <div className="container mx-auto px-4 md:px-6 relative z-10">
           <div className="flex justify-between items-center mb-8">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-emerald-400 font-bold hover:text-emerald-300 transition-colors"
+              className={`flex items-center gap-2 ${isFashion ? 'text-slate-400' : 'text-emerald-400'} font-bold hover:text-white transition-colors`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-              Volver
+              Volver a la tienda
             </button>
             <button
               onClick={handleShare}
@@ -237,47 +253,76 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="max-w-3xl">
-              <span className="inline-block px-4 py-1.5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 rounded-full text-emerald-400 text-sm font-bold mb-6 uppercase tracking-widest">
-                {service.subtitle}
+              <span className={`inline-block px-4 py-1.5 ${isFashion ? 'bg-slate-500/20 border-slate-500/30 text-slate-300' : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'} backdrop-blur-md border rounded-full text-sm font-bold mb-6 uppercase tracking-widest`}>
+                {service.subtitle || (isFashion ? 'Colección Exclusiva' : 'Tratamiento Elite')}
               </span>
-              <h1 className="text-4xl md:text-6xl font-bold mb-8 leading-tight">
+              <h1 className="text-4xl md:text-6xl font-serif mb-8 leading-tight">
                 {service.title}
               </h1>
-              <p className="text-lg md:text-xl text-emerald-100/80 leading-relaxed mb-4">
+              <p className={`text-lg md:text-xl ${isFashion ? 'text-slate-300' : 'text-emerald-100/80'} leading-relaxed mb-4`}>
                 {service.description || service.heroDescription}
               </p>
               {service.price && (
-                <p className="text-3xl font-bold text-emerald-400 mb-10 flex items-center gap-2">
+                <p className={`text-3xl font-bold ${isFashion ? 'text-white' : 'text-emerald-400'} mb-10 flex items-center gap-2`}>
                   {formatPriceCOP(service.price)}
-                  {service.packagePrice && <span className="text-sm text-emerald-200/60 font-medium">({service.packagePrice})</span>}
+                  {service.packagePrice && <span className="text-sm text-slate-400 font-medium">{service.packagePrice}</span>}
                 </p>
               )}
               <div className="flex flex-wrap gap-4">
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bg-emerald-500 hover:bg-emerald-400 text-emerald-950 px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-xl shadow-emerald-500/20"
-                >
-                  Agendar Valoración Ahora
-                </a>
-                {relatedBundles.length > 0 ? (
-                  <button
-                    onClick={() => setIsHeroOfferOpen(true)}
-                    className="bg-emerald-100 hover:bg-white text-emerald-900 border border-white/20 px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 shadow-xl shadow-emerald-100/10"
-                  >
-                    <Gift size={20} />
-                    Ver Oferta Disponible
-                  </button>
+                {isFashion ? (
+                  <>
+                    <button
+                      onClick={() => addToCart({
+                        id: service.id || serviceId,
+                        title: service.title,
+                        price: service.price || 0,
+                        imageUrl: service.imageUrl,
+                        type: 'product',
+                        companyId: tenant?.id || ''
+                      })}
+                      className="bg-white text-slate-900 hover:bg-slate-100 shadow-xl shadow-white/10 px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2"
+                    >
+                      <ShoppingBag size={20} />
+                      Agregar al carrito
+                    </button>
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-xl font-bold text-lg transition-all backdrop-blur-sm"
+                    >
+                      Hablar con una asesora
+                    </a>
+                  </>
                 ) : (
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-xl font-bold text-lg transition-all backdrop-blur-sm"
-                  >
-                    Hablar con un Especialista
-                  </a>
+                  <>
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`${isTech ? 'bg-cyan-600 hover:bg-cyan-500 shadow-cyan-600/20' : 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20'} px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-xl`}
+                    >
+                      {isTech ? 'Solicitar Consultoría Ahora' : 'Agendar Valoración Ahora'}
+                    </a>
+                    {relatedBundles.length > 0 ? (
+                      <button
+                        onClick={() => setIsHeroOfferOpen(true)}
+                        className="bg-emerald-100 text-emerald-900 border-white/20 hover:bg-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 shadow-xl"
+                      >
+                        <Gift size={20} />
+                        Ver Oferta Disponible
+                      </button>
+                    ) : (
+                      <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-xl font-bold text-lg transition-all backdrop-blur-sm"
+                      >
+                        {isTech ? 'Hablar con un Asesor' : 'Hablar con un Especialista'}
+                      </a>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -308,11 +353,6 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
                             alt={service.title} 
                             className="w-full h-full transition-transform duration-700 group-hover:scale-105" 
                           />
-                          <div className="absolute inset-0 bg-emerald-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                             <div className="bg-white/20 backdrop-blur-md p-4 rounded-full text-white">
-                               <ChevronRight size={32} />
-                             </div>
-                          </div>
                         </div>
                         
                         {/* Secondary Thumbnails */}
@@ -351,11 +391,6 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
                           alt={service.title} 
                           className="w-full h-full transition-transform duration-700 group-hover:scale-110" 
                         />
-                        <div className="absolute inset-0 bg-emerald-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                             <div className="bg-white/20 backdrop-blur-md p-4 rounded-full text-white">
-                               <ChevronRight size={32} />
-                             </div>
-                        </div>
                       </div>
                     )}
 
@@ -394,11 +429,13 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
       <div className="container mx-auto px-4 md:px-6 py-20">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           <div>
-            <h2 className="text-3xl font-bold text-slate-900 mb-8">¿Por qué elegir este tratamiento?</h2>
+            <h2 className={`text-3xl font-bold text-slate-900 mb-8 ${isFashion ? 'font-serif' : ''}`}>
+              {isTech ? '¿Por qué elegir nuestra solución?' : isFashion ? 'Detalles Exclusivos y Calidad' : '¿Por qué elegir este tratamiento?'}
+            </h2>
             <div className="space-y-6">
               {service.benefits.map((benefit: string, i: number) => (
-                <div key={i} className="flex gap-4 items-start bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100">
-                  <div className="flex-shrink-0 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                <div key={i} className={`flex gap-4 items-start ${isFashion ? 'bg-slate-50 border-slate-100' : 'bg-emerald-50/50 border-emerald-100'} p-6 rounded-2xl border`}>
+                  <div className={`flex-shrink-0 w-8 h-8 ${isFashion ? 'bg-slate-900' : 'bg-emerald-500'} rounded-full flex items-center justify-center text-white font-bold`}>
                     {i + 1}
                   </div>
                   <p className="text-lg text-slate-700 font-medium">{benefit}</p>
@@ -408,19 +445,23 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
           </div>
 
           <div className="bg-white rounded-[2.5rem] shadow-2xl p-10 md:p-12 border border-slate-100">
-            <h3 className="text-2xl font-bold text-slate-900 mb-8 border-b border-slate-100 pb-4">Detalles del Procedimiento</h3>
+            <h3 className={`text-2xl font-bold text-slate-900 mb-8 border-b border-slate-100 pb-4 ${isFashion ? 'font-serif' : ''}`}>
+              {isTech ? 'Detalles de la Implementación' : isFashion ? 'Guía de Estilo y Composición' : 'Detalles del Procedimiento'}
+            </h3>
             <div className="space-y-8">
               {service.components ? (
                 service.components.map((comp: any, i: number) => (
                   <div key={i} className="group">
-                    <h4 className="text-xl font-bold text-emerald-600 mb-2">{comp.name}</h4>
+                    <h4 className={`text-xl font-bold ${isFashion ? 'text-slate-900' : 'text-emerald-600'} mb-2`}>{comp.name}</h4>
                     <p className="text-slate-600 leading-relaxed">{comp.desc}</p>
                   </div>
                 ))
               ) : (
                 <div className="space-y-6">
                   <p className="text-slate-600 leading-relaxed">
-                    Nuestros tratamientos se enfocan en la raíz del problema celular, utilizando componentes de alta calidad y tecnología de punta.
+                    {isFashion 
+                        ? 'Nuestras prendas son confeccionadas con materiales premium, garantizando una caída perfecta y durabilidad excepcional en cada costura.'
+                        : 'Nuestros tratamientos se enfocan en la raíz del problema celular, utilizando componentes de alta calidad y tecnología de punta.'}
                   </p>
                 </div>
               )}
@@ -430,15 +471,17 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
 
         {/* Ofertas Especiales (Venta Cruzada directa) movida bajo Detalles */}
         {relatedBundles.length > 0 && (
-          <div className="mt-16 bg-emerald-50/60 p-8 md:p-12 rounded-[3rem] border border-emerald-100 shadow-xl">
+          <div className={`mt-16 ${isFashion ? 'bg-slate-50 border-slate-100' : 'bg-emerald-50/60 border-emerald-100'} p-8 md:p-12 rounded-[3rem] border shadow-xl`}>
             <div className="text-center max-w-2xl mx-auto mb-10">
-              <h2 className="text-sm font-black text-amber-500 uppercase tracking-widest mb-2">Promoción Especial Activa</h2>
-              <h3 className="text-3xl font-bold text-slate-900 leading-tight">Aproveche esta oferta junto a su tratamiento</h3>
+              <h2 className={`text-sm font-black ${isFashion ? 'text-slate-400' : 'text-amber-500'} uppercase tracking-widest mb-2`}>Promoción Especial Activa</h2>
+              <h3 className={`text-3xl font-bold text-slate-900 leading-tight ${isFashion ? 'font-serif' : ''}`}>
+                {isTech ? 'Optimice su inversión con estas soluciones' : isFashion ? 'Completa tu look con estos accesorios' : 'Aproveche esta oferta junto a su tratamiento'}
+              </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
               {relatedBundles.map(bundle => (
                   <div key={bundle.id} className="max-w-sm mx-auto w-full">
-                      <BundleCard offer={bundle} isFashion={false} />
+                      <BundleCard offer={bundle} isFashion={isFashion} />
                   </div>
               ))}
             </div>
@@ -460,17 +503,17 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
             <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
               <div>
                 <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Sugerencias Adicionales</h2>
-                <h3 className="text-3xl font-bold text-slate-900 leading-tight">Productos o paquetes que te pueden interesar</h3>
+                <h3 className={`text-3xl font-bold text-slate-900 leading-tight ${isFashion ? 'font-serif' : ''}`}>{isFashion ? 'También te puede gustar' : 'Productos o paquetes que te pueden interesar'}</h3>
               </div>
               {onGoToOffers && (
-                <button onClick={onGoToOffers} className="text-emerald-600 font-bold hover:text-emerald-700 flex items-center gap-2 group">
-                  Ver más paquetes <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                <button onClick={onGoToOffers} className={`font-bold flex items-center gap-2 group ${isFashion ? 'text-slate-900' : 'text-emerald-600'}`}>
+                  {isFashion ? 'Ver toda la tienda' : 'Ver más paquetes'} <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               )}
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 justify-center">
                {suggestedBundles.map(bundle => (
-                   <BundleCard key={bundle.id} offer={bundle} isFashion={false} />
+                   <BundleCard key={bundle.id} offer={bundle} isFashion={isFashion} />
                ))}
             </div>
           </div>
@@ -483,9 +526,9 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
         <div className="bg-slate-50 py-20 border-t border-slate-100">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 className="text-sm font-bold text-emerald-600 uppercase tracking-widest mb-3">Maximice sus Resultados</h2>
-              <h3 className="text-4xl font-bold text-slate-900 leading-tight">Suplementación Coadyuvante</h3>
-              <p className="text-slate-500 mt-4 leading-relaxed">Para una mejoría pronta y duradera, recomendamos acompañar este tratamiento con los siguientes productos nutricionales.</p>
+              <h2 className={`text-sm font-bold ${isFashion ? 'text-slate-400' : 'text-emerald-600'} uppercase tracking-widest mb-3`}>{isFashion ? 'Eleva tu Estilo' : 'Maximice sus Resultados'}</h2>
+              <h3 className={`text-4xl font-bold text-slate-900 leading-tight ${isFashion ? 'font-serif' : ''}`}>{isFashion ? 'Accesorios Recomendados' : 'Suplementación Coadyuvante'}</h3>
+              <p className="text-slate-500 mt-4 leading-relaxed">{isFashion ? 'Completa tu outfit con estas piezas seleccionadas cuidadosamente por nuestras asesoras.' : 'Para una mejoría pronta y duradera, recomendamos acompañar este tratamiento con los siguientes productos nutricionales.'}</p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -506,14 +549,14 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
                   <h4 className="text-xl font-bold text-slate-900 mb-2">{sup.title}</h4>
                   <p className="text-sm text-slate-500 mb-6 leading-relaxed flex-grow">{sup.description}</p>
                   <div className="pt-4 border-t border-slate-50 w-full mt-auto">
-                    <p className="text-emerald-700 font-bold text-lg mb-4">{formatPriceCOP(sup.price)}</p>
+                    <p className={`font-bold text-lg mb-4 ${isFashion ? 'text-slate-900' : 'text-emerald-700'}`}>{formatPriceCOP(sup.price)}</p>
                     <a
                       href={getWhatsAppLeadUrl({ customMessage: `Interés en ${sup.title}` })}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-block w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-3 rounded-xl transition-colors text-sm"
+                      className={`inline-block w-full ${isFashion ? 'bg-slate-900 text-white' : 'bg-emerald-50 text-emerald-700'} font-bold py-3 rounded-xl transition-colors text-sm`}
                     >
-                      Ficha Técnica y Pedido
+                      {isFashion ? 'Añadir al Look' : 'Ficha Técnica y Pedido'}
                     </a>
                   </div>
                 </div>
@@ -526,19 +569,27 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
       {/* Final CTA Landing */}
       <div id="agendar" className="bg-white py-20">
         <div className="container mx-auto px-4 md:px-6 text-center">
-          <div className="max-w-4xl mx-auto bg-slate-900 p-12 md:p-20 rounded-[3rem] shadow-2xl relative overflow-hidden">
+          <div className={`max-w-4xl mx-auto ${isFashion ? 'bg-white' : 'bg-slate-900'} p-12 md:p-20 rounded-[3rem] shadow-2xl relative overflow-hidden border border-slate-100`}>
             <div className="absolute inset-0 bg-pattern opacity-5"></div>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 relative z-10">Empiece hoy su proceso de renovación</h2>
-            <p className="text-lg text-emerald-100/70 mb-12 relative z-10">
-              Estamos listos para brindarle una atención humana, profesional y con resultados garantizados.
+            <h2 className={`text-4xl md:text-5xl font-bold ${isFashion ? 'text-slate-900 font-serif' : 'text-white'} mb-8 relative z-10`}>
+              {isTech ? 'Impulse su transformación digital hoy' : isFashion ? 'Luce tu mejor versión con esta pieza' : 'Empiece hoy su proceso de renovación'}
+            </h2>
+            <p className={`text-lg ${isFashion ? 'text-slate-500' : 'text-emerald-100/70'} mb-12 relative z-10`}>
+              {isTech 
+                ? 'Nuestro equipo de expertos está listo para llevar su negocio al siguiente nivel con software de alto impacto.'
+                : isFashion ? 'Nuestras asesoras están listas para ayudarte a encontrar tu talle ideal y coordinar el envío.' : 'Estamos listos para brindarle una atención humana, profesional y con resultados garantizados.'}
             </p>
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-block bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-bold py-6 px-12 rounded-2xl text-xl transition-all shadow-xl shadow-emerald-500/20 active:scale-95 relative z-10"
+              className={`inline-block font-bold py-6 px-12 rounded-2xl text-xl transition-all shadow-xl active:scale-95 relative z-10 ${
+                isTech ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-900 shadow-cyan-500/20' : 
+                isFashion ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/20' : 
+                'bg-emerald-500 hover:bg-emerald-400 text-emerald-950 shadow-emerald-500/20'
+              }`}
             >
-              Confirmar mi cita ahora
+              {isTech ? 'Iniciar mi proyecto ahora' : isFashion ? 'Comprar por WhatsApp' : 'Confirmar mi cita ahora'}
             </a>
           </div>
         </div>

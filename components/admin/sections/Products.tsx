@@ -166,9 +166,9 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
 
         try {
             // Limpiar relaciones si las hay
-            await supabase.from('treatment_benefits').delete().eq('treatment_id', productToDelete.id);
+            await supabase.from('treatment_benefits').delete().eq('treatment_id', productToDelete.id).eq('company_id', companyId);
             
-            const { error } = await supabase.from('treatments').delete().eq('id', productToDelete.id);
+            const { error } = await supabase.from('treatments').delete().eq('id', productToDelete.id).eq('company_id', companyId);
             if (error) throw error;
             
             fetchProducts();
@@ -676,7 +676,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                             <span className="text-xs font-bold text-slate-700">{cat.name}</span>
                                             <button
                                                 onClick={async () => {
-                                                    await supabase.from('categories').delete().eq('id', cat.id);
+                                                    await supabase.from('categories').delete().eq('id', cat.id).eq('company_id', companyId);
                                                     fetchCategories();
                                                 }}
                                                 className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
@@ -741,7 +741,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                             <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">{tag.name}</span>
                                             <button
                                                 onClick={async () => {
-                                                    await supabase.from('tags').delete().eq('id', tag.id);
+                                                    await supabase.from('tags').delete().eq('id', tag.id).eq('company_id', companyId);
                                                     fetchGlobalTags();
                                                 }}
                                                 className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"

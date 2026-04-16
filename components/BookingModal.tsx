@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { getWhatsAppLeadUrl, Location } from '../utils/whatsapp';
+import { useTenant } from '../hooks/useTenant';
 
 interface BookingModalProps {
     isOpen: boolean;
@@ -9,6 +10,10 @@ interface BookingModalProps {
 }
 
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, serviceTitle }) => {
+    const { tenant } = useTenant();
+    const isTech = tenant?.template_id === 'services-tech';
+    const isFashion = tenant?.business_type === 'fashion';
+    
     const [step, setStep] = useState(1);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [formData, setFormData] = useState({
@@ -51,7 +56,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, serviceTit
         const whatsappUrl = getWhatsAppLeadUrl({
             location: formData.location,
             serviceTitle: formData.reason,
-            customMessage: `Quiero agendar cita -- Fecha: ${dateStr} -- Cliente: ${formData.name} -- Tel: ${formData.phone}`
+            customMessage: isTech 
+                ? `Quiero solicitar consultoría para proyecto -- Fecha sugerida: ${dateStr} -- Cliente: ${formData.name} -- Tel: ${formData.phone}`
+                : `Quiero agendar cita -- Fecha: ${dateStr} -- Cliente: ${formData.name} -- Tel: ${formData.phone}`
         });
 
         window.open(whatsappUrl, '_blank');
@@ -71,7 +78,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, serviceTit
                 <div className="p-8 md:p-10">
                     <div className="flex justify-between items-center mb-8">
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-900">Agendar Valoración</h2>
+                            <h2 className="text-2xl font-bold text-slate-900">
+                                {isTech ? 'Solicitar Consultoría' : isFashion ? 'Verificar Disponibilidad' : 'Agendar Valoración'}
+                            </h2>
                             <p className="text-slate-500 text-sm">Paso {step} de 2</p>
                         </div>
                         <button
@@ -85,8 +94,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, serviceTit
                     {step === 1 ? (
                         <div className="animate-fade-in">
                             <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">1</span>
-                                Seleccione una fecha disponible
+                                <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${isTech ? 'bg-cyan-100 text-cyan-600' : 'bg-emerald-100 text-emerald-600'}`}>1</span>
+                                {isTech ? 'Seleccione fecha para reunión técnica' : 'Seleccione una fecha disponible'}
                             </h3>
 
                             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
@@ -127,14 +136,16 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, serviceTit
                                 </div>
                             </div>
                             <p className="text-tiny text-slate-400 text-center mt-6 uppercase tracking-tighter">
-                                * Para urgencias o citas el mismo día, llámenos directamente.
+                                {isTech 
+                                    ? '* Para requerimientos críticos o soporte inmediato, contáctenos vía chat.' 
+                                    : '* Para urgencias o citas el mismo día, llámenos directamente.'}
                             </p>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="animate-fade-in space-y-6">
                             <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">2</span>
-                                Sus datos de contacto
+                                <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${isTech ? 'bg-cyan-100 text-cyan-600' : 'bg-emerald-100 text-emerald-600'}`}>2</span>
+                                {isTech ? 'Detalles de su proyecto' : 'Sus datos de contacto'}
                             </h3>
 
                             <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-center gap-3 mb-6">
@@ -192,12 +203,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, serviceTit
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-600 ml-1">Díganos el motivo (opcional)</label>
+                                    <label className="text-xs font-bold text-slate-600 ml-1">
+                                        {isTech ? 'Nombre de la Empresa o Proyecto' : 'Díganos el motivo (opcional)'}
+                                    </label>
                                     <input
                                         type="text"
                                         value={formData.reason}
                                         onChange={e => setFormData({ ...formData, reason: e.target.value })}
-                                        placeholder="Ej: Sueroterapia Detox"
+                                        placeholder={isTech ? 'Ej: Desarrollo App Móvil' : 'Ej: Sueroterapia Detox'}
                                         className="w-full px-5 py-4 bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 rounded-2xl transition-all text-sm"
                                     />
                                 </div>
@@ -205,9 +218,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, serviceTit
 
                             <button
                                 type="submit"
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-5 rounded-2xl shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                                className={`w-full text-white font-bold py-5 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 active:scale-[0.98] ${
+                                    isTech ? 'bg-cyan-600 hover:bg-cyan-700 shadow-cyan-600/20' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
+                                }`}
                             >
-                                Confirmar por WhatsApp
+                                {isTech ? 'Enviar Solicitud de Consultoría' : 'Confirmar por WhatsApp'}
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </button>
                         </form>

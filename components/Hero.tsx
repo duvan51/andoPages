@@ -35,7 +35,7 @@ const Hero: React.FC<HeroProps> = ({ onServiceSelect, onTreatmentsClick }) => {
             {config.subtitle || (template === 'services-tech' ? 'Innovación Digital' : `Bienvenido a ${tenant?.name || 'PROMEDID'}`)}
           </div>
 
-          <h1 className={`text-5xl md:text-7xl font-bold leading-tight ${isDark ? 'text-white' : 'text-emerald-950'}`}>
+          <h1 className={`text-5xl md:text-7xl font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {config.title ? (
               config.title
             ) : (
@@ -94,8 +94,8 @@ const Hero: React.FC<HeroProps> = ({ onServiceSelect, onTreatmentsClick }) => {
               ))}
             </div>
             <div className="text-sm">
-              <p className="font-bold text-emerald-950">+15,000 Pacientes</p>
-              <p className="text-slate-500">Han renovado su salud con nosotros</p>
+              <p className={`font-bold ${isDark ? 'text-white' : 'text-emerald-950'}`}>+15,000 Pacientes</p>
+              <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>Han renovado su salud con nosotros</p>
             </div>
           </div>
         </div>

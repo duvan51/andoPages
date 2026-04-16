@@ -8,6 +8,7 @@ import SpecializedTreatments from './SpecializedTreatments';
 import Locations from './Locations';
 import FashionHero from './FashionHero';
 import FashionCollections from './FashionCollections';
+import FashionCollage from './FashionCollage';
 import ContactForm from './ContactForm';
 import { useTenant } from '../hooks/useTenant';
 
@@ -27,7 +28,7 @@ const WebsiteContent: React.FC<WebsiteContentProps> = ({
     return (
         <div className={`transition-all duration-500 ${tenant?.template_id === 'medical-dark' ? 'bg-slate-950 text-white' :
             tenant?.template_id === 'fashion-vintage' ? 'bg-[#fcf8f2]' :
-                tenant?.template_id === 'services-tech' ? 'bg-[#0a0c10] text-slate-100' : 'bg-white'
+                tenant?.template_id === 'services-tech' ? 'bg-[#0a0c10] text-white' : 'bg-white'
             }`}
         >
             {/* HERO SECTION */}
@@ -62,6 +63,7 @@ const WebsiteContent: React.FC<WebsiteContentProps> = ({
                     <section id="inventory">
                         <FashionCollections onSelect={onServiceSelect} />
                     </section>
+                    <FashionCollage />
                     <SpecialOffers onServiceSelect={onServiceSelect} />
                 </>
             )}

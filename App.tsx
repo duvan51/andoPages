@@ -23,6 +23,7 @@ import OffersPage from './components/OffersPage';
 import WebsiteContent from './components/WebsiteContent';
 import { useTenant } from './hooks/useTenant';
 import { supabase } from './lib/supabase'; // Importación necesaria para el auto-login
+import CartDrawer from './components/shared/CartDrawer';
 
 const App: React.FC = () => {
   const { tenant, isMainDomain, isLoading: isTenantLoading, isError: isTenantError } = useTenant();
@@ -237,6 +238,8 @@ const App: React.FC = () => {
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
       />
+
+      <CartDrawer />
     </div>
   );
 };

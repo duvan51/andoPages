@@ -1,10 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
+import { X, ChevronLeft, ChevronRight, Eye, ShoppingBag, Plus } from 'lucide-react';
 import { getWhatsAppLeadUrl } from '../utils/whatsapp';
 import { formatPriceCOP } from '../utils/format';
 import { useServices } from '../hooks/useServices';
 import { useTenant } from '../hooks/useTenant';
+import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
+import ProductQuickView from './shared/ProductQuickView';
 
 interface ServicesPageProps {
     onServiceSelect: (id: string) => void;
@@ -13,10 +16,12 @@ interface ServicesPageProps {
 
 const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onBack }) => {
     const { tenant } = useTenant();
+    const { addToCart } = useCart();
     const { treatments, loading: servicesLoading } = useServices();
     const [activeCategory, setActiveCategory] = useState<string>('Todos');
     const [categories, setCategories] = useState<string[]>(['Todos']);
     const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+    const [selectedQuickView, setSelectedQuickView] = useState<any | null>(null);
 
     const isFashion = tenant?.business_type === 'fashion';
     const primaryColor = isFashion ? 'slate-900' : 'emerald-600';
@@ -64,7 +69,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onBack }) 
                         onClick={onBack}
                         className={`flex items-center gap-2 text-${primaryColor} font-bold mb-6 hover:opacity-80 transition-all`}
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                        <ChevronLeft size={20} />
                         Volver al inicio
                     </button>
                     <div className="max-w-4xl">
@@ -120,51 +125,68 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onBack }) 
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
                                 <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-                                    <span className="bg-white/90 backdrop-blur-sm text-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-100 shadow-sm">
+                                    <span className={`bg-white/90 backdrop-blur-sm ${isFashion ? 'text-slate-900' : 'text-emerald-600'} px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-slate-100 shadow-sm z-10`}>
                                         {treatment.tag}
                                     </span>
                                     {treatment.price && (
-                                        <span className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                                        <span className={`${isFashion ? 'bg-slate-900' : 'bg-emerald-600'} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg z-10`}>
                                             {formatPriceCOP(treatment.price)}
                                         </span>
                                     )}
                                 </div>
+
+                                {/* Hover Actions */}
+                                <div className="absolute inset-0 bg-slate-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-20">
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedQuickView(treatment);
+                                        }}
+                                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-900 shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
+                                    >
+                                        <Eye size={18} />
+                                    </button>
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            addToCart({
+                                                id: treatment.id,
+                                                title: treatment.title,
+                                                price: treatment.price || 0,
+                                                imageUrl: treatment.imageUrl,
+                                                type: 'product',
+                                                companyId: tenant?.id || ''
+                                            });
+                                        }}
+                                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-900 shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75"
+                                    >
+                                        <Plus size={20} />
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Product Info */}
-                            <div className="p-6 flex flex-col flex-grow">
+                            <div className="p-6 flex flex-col flex-grow cursor-pointer" onClick={() => onServiceSelect(treatment.id)}>
                                 <div className="mb-4">
-                                    <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-[0.2em] mb-1">{treatment.subtitle}</p>
-                                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition-colors leading-tight">{treatment.title}</h3>
+                                    <p className={`text-[10px] font-bold ${isFashion ? 'text-slate-400' : 'text-emerald-500'} uppercase tracking-[0.2em] mb-1`}>{treatment.subtitle}</p>
+                                    <h3 className={`text-lg font-bold text-slate-900 group-hover:${isFashion ? 'text-slate-500' : 'text-emerald-700'} transition-colors leading-tight`}>{treatment.title}</h3>
                                 </div>
 
                                 <p className="text-slate-500 text-xs leading-relaxed mb-6 flex-grow line-clamp-3">
                                     {treatment.description}
                                 </p>
 
-                                {treatment.packagePrice && (
-                                    <div className="mb-4 p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Ahorro Garantizado</p>
-                                        <p className="text-xs font-bold text-emerald-700">{treatment.packagePrice}</p>
-                                    </div>
-                                )}
-
-                                {treatment.notes && (
-                                    <div className="mb-4 flex gap-2 items-start">
-                                        <div className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-[10px] font-bold flex-shrink-0">!</div>
-                                        <p className="text-[10px] text-slate-400 italic leading-tight">{treatment.notes}</p>
-                                    </div>
-                                )}
-
                                 <div className="pt-4 border-t border-slate-50 mt-auto">
                                     <button
-                                        onClick={() => onServiceSelect(treatment.id)}
-                                        className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition-all text-sm flex items-center justify-center gap-2"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onServiceSelect(treatment.id);
+                                        }}
+                                        className={`w-full ${isFashion ? 'bg-slate-900' : 'bg-emerald-600'} hover:opacity-90 text-white font-bold py-3 rounded-xl transition-all text-sm flex items-center justify-center gap-2`}
                                     >
                                         Ver Detalles
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                        </svg>
+                                        <ChevronRight size={16} />
                                     </button>
                                 </div>
                             </div>
@@ -183,24 +205,37 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onBack }) 
 
             {/* Info Banner */}
             <div className="container mx-auto px-4 md:px-6 pt-20">
-                <div className="bg-emerald-600 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className={`${isFashion ? 'bg-black' : 'bg-emerald-600'} rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8`}>
                     <div className="absolute inset-0 bg-pattern opacity-10"></div>
                     <div className="relative z-10 max-w-xl">
-                        <h2 className="text-3xl font-bold mb-4">¿Busca un tratamiento personalizado?</h2>
-                        <p className="text-emerald-50 text-lg opacity-90">Contamos con más de 15 años de experiencia diseñando planes de salud a medida para cada paciente.</p>
+                        <h2 className={`text-3xl font-bold mb-4 ${isFashion ? 'font-serif' : ''}`}>
+                            {isFashion ? 'Nuestros looks son la clave para brillar' : '¿Busca un tratamiento personalizado?'}
+                        </h2>
+                        <p className="text-white opacity-80 text-lg">
+                            {isFashion 
+                                ? 'Nuestras prendas son especiales para esos momentos inolvidables donde mereces destacar.'
+                                : 'Contamos con más de 15 años de experiencia diseñando planes de salud a medida para cada paciente.'}
+                        </p>
                     </div>
                     <div className="relative z-10">
                         <a
-                            href={getWhatsAppLeadUrl({ customMessage: "Consulta General" })}
+                            href={getWhatsAppLeadUrl({ customMessage: isFashion ? "Asesoría de Moda" : "Consulta General" })}
                             target="_blank"
                             rel="noreferrer"
-                            className={`inline-block bg-white text-${isFashion ? 'slate-900' : 'emerald-700'} px-10 py-4 rounded-2xl font-bold text-lg hover:bg-slate-50 transition-all shadow-xl`}
+                            className={`inline-block bg-white text-${isFashion ? 'black' : 'emerald-700'} px-10 py-4 rounded-2xl font-bold text-lg hover:bg-slate-50 transition-all shadow-xl`}
                         >
-                            Consultar con Especialista
+                            {isFashion ? 'Hablar con una asesora' : 'Consultar con Especialista'}
                         </a>
                     </div>
                 </div>
             </div>
+
+            <ProductQuickView 
+                product={selectedQuickView}
+                isOpen={!!selectedQuickView}
+                onClose={() => setSelectedQuickView(null)}
+                onViewDetails={onServiceSelect}
+            />
         </div>
     );
 };

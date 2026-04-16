@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import ContactFormV2 from './ContactFormV2';
 import { formatPriceCOP } from '../utils/format';
+import { useTenant } from '../hooks/useTenant';
 
 interface LandingPageProps {
     slug?: string;
@@ -10,6 +11,8 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePreview }) => {
+    const { tenant } = useTenant();
+    const isTech = tenant?.template_id === 'services-tech';
     const [fetchedLanding, setFetchedLanding] = useState<any>(null);
     const landing = previewData || fetchedLanding;
 
@@ -103,24 +106,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                 // Initialize default config if fields are missing
                 const config = {
                     pas: {
-                        problem1: '¿Sientes que tu energía no es la misma de antes?',
-                        problem2: '¿El estrés diario afecta tu rendimiento y descanso?',
-                        problem3: '¿Buscas una solución efectiva y profesional?',
+                        problem1: isTech ? '¿Su software actual es lento o está desactualizado?' : '¿Sientes que tu energía no es la misma de antes?',
+                        problem2: isTech ? '¿Los procesos manuales frenan el crecimiento de su empresa?' : '¿El estrés diario afecta tu rendimiento y descanso?',
+                        problem3: isTech ? '¿Busca una ventaja competitiva a través del software?' : '¿Buscas una solución efectiva y profesional?',
                         ...data.config?.pas
                     },
                     benefits: data.config?.benefits || [],
                     solutions: data.config?.solutions || [
-                        { title: 'Tecnología de Vanguardia', text: 'Usamos equipos de última generación para diagnósticos precisos.', image: 'https://images.unsplash.com/photo-1576091160550-217359f49a4c?auto=format&fit=crop&q=80&w=800' },
-                        { title: 'Atención Personalizada', text: 'Cada paciente es único. Diseñamos planes a tu medida.', image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=800' }
+                        { title: isTech ? 'Arquitectura Escalable' : 'Tecnología de Vanguardia', text: isTech ? 'Desarrollamos sistemas listos para crecer con su negocio.' : 'Usamos equipos de última generación para diagnósticos precisos.', image: 'https://images.unsplash.com/photo-1576091160550-217359f49a4c?auto=format&fit=crop&q=80&w=800' },
+                        { title: isTech ? 'Consultoría Expert`a' : 'Atención Personalizada', text: isTech ? 'Ingenieros senior analizan cada detalle de su requerimiento.' : 'Cada paciente es único. Diseñamos planes a tu medida.', image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=800' }
                     ],
                     carousel: { images: [], height: { mobile: '250px', desktop: '400px' }, ...data.config?.carousel },
                     collage: { images: [], height: { mobile: 'auto', desktop: 'auto' }, ...data.config?.collage },
-                    pricing: { title: 'Planes y Precios', subtitle: '', plans: [], ...data.config?.pricing },
+                    pricing: { title: isTech ? 'Nuestras Soluciones' : 'Planes y Precios', subtitle: '', plans: [], ...data.config?.pricing },
                     faq: { title: 'Preguntas Frecuentes', subtitle: '', items: [], ...data.config?.faq },
                     socialProof: {
                         testimonials: [
-                            { name: 'Andrea M.', text: 'Excelente atención, los resultados se notan desde la primera sesión.' },
-                            { name: 'Ricardo G.', text: 'El equipo médico es muy profesional y las instalaciones son impecables.' }
+                            { name: isTech ? 'Tech Corp S.A.' : 'Andrea M.', text: isTech ? 'El desarrollo superó nuestras expectativas de escalabilidad.' : 'Excelente atención, los resultados se notan desde la primera sesión.' },
+                            { name: isTech ? 'Innovate SAS' : 'Ricardo G.', text: isTech ? 'Un equipo de software excepcional y soporte de primera.' : 'El equipo médico es muy profesional y las instalaciones son impecables.' }
                         ],
                         logos: [
                             'https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_de_la_Organizaci%C3%B3n_Mundial_de_la_Salud.svg',
@@ -128,10 +131,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                         ],
                         ...data.config?.socialProof
                     },
-                    header: { buttonText: 'RESERVA AHORA', buttonColor: '#10b981', ...data.config?.header },
-                    hero: { title: data.title, subtitle: '', imageUrl: '', buttonText: '¡Quiero mi Valoración!', buttonColor: '#0f172a', ...data.config?.hero },
-                    cta: { id: '', urgencyText: '⚠️ Quedan pocos cupos para esta semana', buttonText: '¡Quiero mi cita!', buttonColor: '#10b981', ...data.config?.cta },
-                    floatingAction: { type: 'whatsapp', style: 'circle', label: '¡Hablemos! 👋', color: '#25D366', ...data.config?.floatingAction },
+                    header: { buttonText: isTech ? 'COTIZAR AHORA' : 'RESERVA AHORA', buttonColor: isTech ? '#06b6d4' : '#10b981', ...data.config?.header },
+                    hero: { title: data.title, subtitle: '', imageUrl: '', buttonText: isTech ? '¡Empezar Proyecto!' : '¡Quiero mi Valoración!', buttonColor: isTech ? '#06b6d4' : '#0f172a', ...data.config?.hero },
+                    cta: { id: '', urgencyText: isTech ? '🚀 Disponibilidad limitada para nuevos proyectos' : '⚠️ Quedan pocos cupos para esta semana', buttonText: isTech ? 'Solicitar Consultoría' : '¡Quiero mi cita!', buttonColor: isTech ? '#06b6d4' : '#10b981', ...data.config?.cta },
+                    floatingAction: { type: 'whatsapp', style: 'circle', label: '¡Hablemos! 👋', color: isTech ? '#06b6d4' : '#25D366', ...data.config?.floatingAction },
                     order: data.config?.order || ['hero', 'pas', 'solutions', 'carousel', 'collage', 'pricing', 'faq', 'socialProof', 'cta', 'footer'],
                     visibility: {
                         hero: true,
@@ -161,6 +164,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                         .from(table)
                         .select('*')
                         .eq('id', config.cta.id)
+                        .eq('company_id', data.company_id)
                         .single();
                     setCtaItem(itemData);
                 }
@@ -441,8 +445,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                         <div className={cn("container mx-auto px-4 md:px-6")}>
                             <div className={cn(`flex items-center gap-16 lg:gap-24 ${getFlexClass('hero')}`)}>
                                 <div className={cn(`w-full md:w-3/5 space-y-8 animate-fade-in-right flex flex-col ${getAlignment(landing.config?.styles?.heroAlignment, 'left')}`)}>
-                                    <span className="inline-block bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                        ✨ Medicina Integral Avanzada
+                                    <span className={cn(`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${isTech ? 'bg-cyan-100 text-cyan-700' : 'bg-emerald-100 text-emerald-700'}`)}>
+                                        {isTech ? '🚀 Transformación Digital de Alto Impacto' : '✨ Medicina Integral Avanzada'}
                                     </span>
                                     <h1
                                         className={cn(`text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 leading-[1.1] md:leading-[1.05] tracking-tight ${getVisClass('heroTitle')}`)}
@@ -471,7 +475,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                             <div className="flex -space-x-2">
                                                 {[1, 2, 3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200" />)}
                                             </div>
-                                            <span className="text-xs font-bold text-slate-400">+1,500 personas atendidas</span>
+                                            <span className="text-xs font-bold text-slate-400">
+                                                {isTech ? '+50 proyectos exitosos' : '+1,500 personas atendidas'}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -516,9 +522,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                     className={cn("text-3xl md:text-5xl font-black text-slate-900")}
                                     style={pasTitleStyle}
                                 >
-                                    {landing.config?.pas?.title || '¿Te sientes identificado con esto?'}
+                                    {landing.config?.pas?.title || (isTech ? '¿Su negocio enfrenta estos desafíos?' : '¿Te sientes identificado con esto?')}
                                 </h2>
-                                <p className="text-slate-500 font-medium">Muchos de nuestros pacientes llegaban así antes de conocernos</p>
+                                <p className="text-slate-500 font-medium">
+                                    {isTech ? 'Ayudamos a empresas a superar barreras tecnológicas' : 'Muchos de nuestros pacientes llegaban así antes de conocernos'}
+                                </p>
                             </div>
                             <div className={cn("grid md:grid-cols-3 gap-8")}>
                                 {[
@@ -574,9 +582,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                             {s.text}
                                         </p>
                                         <ul className="space-y-3 pt-4">
-                                            {['Especialistas Certificados', 'Tecnología no invasiva', 'Resultados garantizados'].map((t, idx) => (
-                                                <li key={idx} className="flex items-center gap-3 font-bold text-slate-700 text-sm">
-                                                    <span className="text-emerald-500">✓</span> {t}
+                                            {(isTech ? ['Arquitectura Escalable', 'Soporte 24/7', 'Costos Optimizados'] : ['Especialistas Certificados', 'Tecnología no invasiva', 'Resultados garantizados']).map((t, idx) => (
+                                                <li key={idx} className={`flex items-center gap-3 font-bold text-sm ${isTech ? 'text-cyan-600' : 'text-slate-700'}`}>
+                                                    <span className={isTech ? 'text-cyan-500' : 'text-emerald-500'}>✓</span> {t}
                                                 </li>
                                             ))}
                                         </ul>
@@ -683,8 +691,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                     <section key="socialProof" className={cn(`py-16 md:py-24 bg-slate-50 ${getVisClass('socialProof')}`)}>
                         <div className={cn("container mx-auto px-6")}>
                             <div className="text-center mb-16 space-y-4">
-                                <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Lo que dicen nuestros pacientes</h2>
-                                <div className="flex justify-center gap-1 text-amber-400 text-xl">★★★★★</div>
+                                <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">
+                                    {isTech ? 'Casos de Éxito y Confianza' : 'Lo que dicen nuestros pacientes'}
+                                </h2>
+                                <div className={`flex justify-center gap-1 text-xl ${isTech ? 'text-cyan-400' : 'text-amber-400'}`}>★★★★★</div>
                             </div>
                             <div className={cn(`grid gap-8 mb-20 ${getGridCols('socialProof')}`)}>
                                 {(landing.config.socialProof.testimonials || []).map((t: any, i: number) => (
@@ -698,7 +708,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                                 ))}
                             </div>
                             <div className="pt-10 border-t border-slate-200">
-                                <p className="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">{landing.config.socialProof.logosTitle || 'Nuestras Alianzas Médicas'}</p>
+                                <p className="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">
+                                    {landing.config.socialProof.logosTitle || (isTech ? 'Marcas que Potenciamos' : 'Nuestras Alianzas Médicas')}
+                                </p>
                                 <div className={cn("flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-30 grayscale hover:grayscale-0 transition-all")}>
                                     {(landing.config.socialProof.logos || []).map((logo: string, i: number) => logo && (
                                         <img key={i} src={logo} className={cn("h-8 md:h-12 w-auto")} alt="Partner" />
@@ -786,11 +798,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ slug, previewData, isMobilePr
                     <section key="cta" id="cta-section" className={cn(`py-12 md:py-24 bg-slate-900 text-white relative overflow-hidden ${getVisClass('cta')}`)}>
                         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.1),transparent)] pointer-events-none"></div>
                         <div className={cn(`container mx-auto px-2 md:px-6 max-w-4xl relative z-10 space-y-8 md:space-y-10 flex flex-col ${getAlignment(landing.config?.styles?.ctaAlignment)}`)}>
-                            <div className={cn(`bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 px-6 py-2 rounded-full inline-block font-black text-xs tracking-widest uppercase ${getVisClass('ctaText')}`)}>
+                            <div className={cn(`border px-6 py-2 rounded-full inline-block font-black text-xs tracking-widest uppercase ${getVisClass('ctaText')} ${isTech ? 'bg-cyan-600/20 border-cyan-500/30 text-cyan-400' : 'bg-emerald-600/20 border-emerald-500/30 text-emerald-400'}`)}>
                                 {landing.config?.cta?.urgencyText}
                             </div>
-                            <h2 className={cn("text-3xl md:text-6xl font-black leading-tight px-2")} style={ctaTitleStyle}>{landing.config?.cta?.title || '¿Listo para transformar tu bienestar?'}</h2>
-                            <p className={cn("text-lg md:text-xl text-slate-400 font-medium px-2")} style={ctaTextStyle}>{landing.config?.cta?.text || 'Solicita tu valoración inicial hoy y comienza tu camino a una vida más saludable.'}</p>
+                            <h2 className={cn("text-3xl md:text-6xl font-black leading-tight px-2")} style={ctaTitleStyle}>{landing.config?.cta?.title || (isTech ? '¿Listo para acelerar su negocio?' : '¿Listo para transformar tu bienestar?')}</h2>
+                            <p className={cn("text-lg md:text-xl text-slate-400 font-medium px-2")} style={ctaTextStyle}>{landing.config?.cta?.text || (isTech ? 'Solicite una consultoría estratégica hoy mismo y descubra el potencial de su empresa.' : 'Solicita tu valoración inicial hoy y comienza tu camino a una vida más saludable.')}</p>
 
                             <div className={cn("grid md:grid-cols-2 gap-8 md:gap-12 text-left bg-white/5 md:bg-white/5 p-4 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-white/5 backdrop-blur-sm")}>
                                 <div className="space-y-6">

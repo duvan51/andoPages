@@ -17,7 +17,9 @@ import {
     Youtube,
     Upload,
     X as CloseIcon,
-    MapPin
+    MapPin,
+    Sparkles,
+    Gift
 } from 'lucide-react';
 import MediaPicker from '../shared/MediaPicker';
 
@@ -55,14 +57,48 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
             title: '',
             faviconUrl: ''
         },
+        header: {
+            homeLabel: 'Inicio',
+            servicesLabel: 'Tratamientos',
+            bundlesLabel: 'Paquetes',
+            bookingLabel: 'Agendar'
+        },
+        banner: {
+            enabled: true,
+            type: 'offers', // 'offers' or 'custom'
+            customText: '',
+            customLink: '',
+            backgroundColor: '#0f172a'
+        },
+        offers: {
+            title: '',
+            subtitle: ''
+        },
+        collage: {
+            enabled: true,
+            title: '',
+            subtitle: '',
+            images: [
+                "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1539109139745-f6011a277370?q=80&w=1974&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=2074&auto=format&fit=crop"
+            ]
+        },
+        whatsapp: {
+            enabled: true,
+            label: '',
+            message: ''
+        },
         showLocations: true
     });
 
     const [customDomain, setCustomDomain] = useState('');
     const [seoVerificationCode, setSeoVerificationCode] = useState('');
     const [isSaving, setIsSaving] = useState(false);
-    const [mediaPickerConfig, setMediaPickerConfig] = useState<{isOpen: boolean, target: '' | 'hero' | 'favicon'}>({ isOpen: false, target: '' });
-    const [activeSection, setActiveSection] = useState<'hero' | 'footer' | 'contact' | 'advanced' | 'seo'>('hero');
+    const [mediaPickerConfig, setMediaPickerConfig] = useState<{isOpen: boolean, target: string}>({ isOpen: false, target: '' });
+    const [activeSection, setActiveSection] = useState<'hero' | 'header' | 'footer' | 'contact' | 'banners' | 'collage' | 'whatsapp' | 'advanced' | 'seo'>('hero');
 
     useEffect(() => {
         if (companyId) {
@@ -88,6 +124,39 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                     footer: { ...config.footer, ...(data.config.footer || {}) },
                     contact: { ...config.contact, ...(data.config.contact || {}) },
                     metadata: { ...config.metadata, ...(data.config.metadata || {}) },
+                    header: { ...config.header, ...(data.config.header || {
+                        homeLabel: 'Inicio',
+                        servicesLabel: data.business_type === 'fashion' ? 'Lookbook' : 'Tratamientos',
+                        bundlesLabel: 'Paquetes',
+                        bookingLabel: data.business_type === 'fashion' ? 'Ver Tienda' : 'Agendar'
+                    }) },
+                    banner: { 
+                        enabled: true,
+                        type: 'offers',
+                        customText: '',
+                        customLink: '',
+                        backgroundColor: '#0f172a',
+                        ...(data.config.banner || {}) 
+                    },
+                    offers: {
+                        title: '',
+                        subtitle: '',
+                        ...(data.config.offers || {})
+                    },
+                    collage: {
+                        enabled: true,
+                        title: '',
+                        subtitle: '',
+                        images: [],
+                        labels: [],
+                        ...(data.config.collage || {})
+                    },
+                    whatsapp: {
+                        enabled: true,
+                        label: '',
+                        message: '',
+                        ...(data.config.whatsapp || {})
+                    },
                     showLocations: data.config.showLocations !== undefined ? data.config.showLocations : true
                 });
             }
@@ -156,11 +225,39 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                         Sección Hero
                     </button>
                     <button
+                        onClick={() => setActiveSection('header')}
+                        className={`w-full flex items-center gap-3 px-4 py-4 rounded-3xl transition-all font-black text-xs uppercase tracking-widest ${activeSection === 'header' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/20' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        <Type size={18} />
+                        Header y Menú
+                    </button>
+                    <button
                         onClick={() => setActiveSection('contact')}
                         className={`w-full flex items-center gap-3 px-4 py-4 rounded-3xl transition-all font-black text-xs uppercase tracking-widest ${activeSection === 'contact' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/20' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
                     >
                         <Smartphone size={18} />
                         Datos de Contacto
+                    </button>
+                    <button
+                        onClick={() => setActiveSection('banners')}
+                        className={`w-full flex items-center gap-3 px-4 py-4 rounded-3xl transition-all font-black text-xs uppercase tracking-widest ${activeSection === 'banners' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/20' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        <Sparkles size={18} />
+                        Banners y Ofertas
+                    </button>
+                    <button
+                        onClick={() => setActiveSection('collage')}
+                        className={`w-full flex items-center gap-3 px-4 py-4 rounded-3xl transition-all font-black text-xs uppercase tracking-widest ${activeSection === 'collage' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/20' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        <ImageIcon size={18} />
+                        Collage de Fotos
+                    </button>
+                    <button
+                        onClick={() => setActiveSection('whatsapp')}
+                        className={`w-full flex items-center gap-3 px-4 py-4 rounded-3xl transition-all font-black text-xs uppercase tracking-widest ${activeSection === 'whatsapp' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/20' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        <Facebook size={18} />
+                        Botón WhatsApp
                     </button>
                     <button
                         onClick={() => setActiveSection('advanced')}
@@ -269,6 +366,308 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                                 className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none"
                                             />
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeSection === 'banners' && (
+                        <div className="space-y-12 animate-fade-in">
+                            {/* Top Announcement Banner */}
+                            <div className="space-y-6">
+                                <SectionHeader 
+                                    title="Banner Superior de Anuncios" 
+                                    subtitle="Gestiona la barra informativa que aparece en el tope de tu web"
+                                    compact
+                                />
+                                
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+                                            <div>
+                                                <h5 className="text-sm font-bold text-slate-800">Estado del Banner</h5>
+                                                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Activar o desactivar en la web</p>
+                                            </div>
+                                            <label className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${config.banner?.enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                                                <input
+                                                    type="checkbox"
+                                                    className="hidden"
+                                                    checked={config.banner?.enabled}
+                                                    onChange={e => setConfig({ ...config, banner: { ...config.banner, enabled: e.target.checked } })}
+                                                />
+                                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.banner?.enabled ? 'left-7' : 'left-1'}`}></div>
+                                            </label>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Contenido</label>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <button 
+                                                    onClick={() => setConfig({ ...config, banner: { ...config.banner, type: 'offers' } })}
+                                                    className={`p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center gap-2 ${config.banner?.type === 'offers' ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
+                                                >
+                                                    <Gift size={20} />
+                                                    <span className="text-[10px] font-black uppercase">Rotar Ofertas</span>
+                                                </button>
+                                                <button 
+                                                    onClick={() => setConfig({ ...config, banner: { ...config.banner, type: 'custom' } })}
+                                                    className={`p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center gap-2 ${config.banner?.type === 'custom' ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
+                                                >
+                                                    <Type size={20} />
+                                                    <span className="text-[10px] font-black uppercase">Texto Manual</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className={`space-y-6 transition-all duration-500 ${config.banner?.type === 'custom' ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mensaje Personalizado</label>
+                                            <input
+                                                value={config.banner?.customText || ''}
+                                                onChange={e => setConfig({ ...config, banner: { ...config.banner, customText: e.target.value } })}
+                                                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10"
+                                                placeholder="Ej: ¡Gran inauguración! 20% Dto en todo..."
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Link del Banner (Opcional)</label>
+                                            <input
+                                                value={config.banner?.customLink || ''}
+                                                onChange={e => setConfig({ ...config, banner: { ...config.banner, customLink: e.target.value } })}
+                                                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10"
+                                                placeholder="Ej: #ofertas o https://..."
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Color de Fondo (HEX)</label>
+                                            <div className="flex gap-3">
+                                                <input
+                                                    type="color"
+                                                    value={config.banner?.backgroundColor || '#0f172a'}
+                                                    onChange={e => setConfig({ ...config, banner: { ...config.banner, backgroundColor: e.target.value } })}
+                                                    className="w-12 h-12 rounded-xl border-none p-0 overflow-hidden cursor-pointer"
+                                                />
+                                                <input
+                                                    value={config.banner?.backgroundColor || '#0f172a'}
+                                                    onChange={e => setConfig({ ...config, banner: { ...config.banner, backgroundColor: e.target.value } })}
+                                                    className="flex-grow bg-slate-50 border-none rounded-2xl px-4 text-sm font-bold outline-none uppercase"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr className="border-slate-100" />
+
+                            {/* Offers Section Customization */}
+                            <div className="space-y-6">
+                                <SectionHeader 
+                                    title="Sección de Ofertas y Paquetes" 
+                                    subtitle="Personaliza el encabezado de tu sección de promociones"
+                                    compact
+                                />
+                                
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Título de la Sección</label>
+                                        <input
+                                            value={config.offers?.title || ''}
+                                            onChange={e => setConfig({ ...config, offers: { ...config.offers, title: e.target.value } })}
+                                            className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10"
+                                            placeholder="Ej: Paquetes de Bienestar"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Subtítulo / Badge</label>
+                                        <input
+                                            value={config.offers?.subtitle || ''}
+                                            onChange={e => setConfig({ ...config, offers: { ...config.offers, subtitle: e.target.value } })}
+                                            className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10"
+                                            placeholder="Ej: Promociones Exclusivas"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="p-6 bg-emerald-50 rounded-[2rem] border border-emerald-100">
+                                    <p className="text-[11px] text-emerald-800 font-medium leading-relaxed">
+                                        💡 <strong>Tip:</strong> Si dejas estos campos vacíos, se usarán los textos predeterminados según tu tipo de negocio y plantilla.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeSection === 'collage' && (
+                        <div className="space-y-8 animate-fade-in">
+                            <div className="space-y-6">
+                                <SectionHeader 
+                                    title="Collage de Fotos" 
+                                    subtitle="Personaliza tu galería de fotos editorial y selecciona hasta 5 imágenes"
+                                    compact
+                                />
+
+                                <div className="grid md:grid-cols-2 gap-6 bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Título de la Sección</label>
+                                        <input
+                                            value={config.collage?.title || ''}
+                                            onChange={e => setConfig({ ...config, collage: { ...config.collage, title: e.target.value } })}
+                                            className="w-full bg-white border-none rounded-2xl p-4 text-sm font-bold outline-none ring-1 ring-slate-100 focus:ring-2 focus:ring-emerald-500/20"
+                                            placeholder="Ej: L'Art de Vive"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Subtítulo / Badge</label>
+                                        <input
+                                            value={config.collage?.subtitle || ''}
+                                            onChange={e => setConfig({ ...config, collage: { ...config.collage, subtitle: e.target.value } })}
+                                            className="w-full bg-white border-none rounded-2xl p-4 text-sm font-bold outline-none ring-1 ring-slate-100 focus:ring-2 focus:ring-emerald-500/20"
+                                            placeholder="Ej: Nuestra Inspiración"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {[0, 1, 2, 3, 4].map((index) => (
+                                        <div key={index} className="space-y-3">
+                                            <div className="relative aspect-square rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden group">
+                                                {config.collage?.images[index] ? (
+                                                    <>
+                                                        <img src={config.collage.images[index]} className="w-full h-full object-cover" alt={`Collage ${index}`} />
+                                                        <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                            <button onClick={() => setMediaPickerConfig({ isOpen: true, target: `collage${index}` })} className="p-2 bg-white text-slate-900 rounded-xl shadow-lg"><Upload size={16} /></button>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <button onClick={() => setMediaPickerConfig({ isOpen: true, target: `collage${index}` })} className="text-slate-400 hover:text-emerald-600">
+                                                        <ImageIcon size={32} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <input 
+                                                value={config.collage?.labels?.[index] || ''}
+                                                onChange={e => {
+                                                    const newLabels = [...(config.collage?.labels || [])];
+                                                    newLabels[index] = e.target.value;
+                                                    setConfig({ ...config, collage: { ...config.collage, labels: newLabels } });
+                                                }}
+                                                placeholder="Texto de la imagen..."
+                                                className="w-full bg-slate-50 border-none rounded-xl px-3 py-2 text-[10px] font-bold outline-none ring-1 ring-slate-100 focus:ring-2 focus:ring-emerald-500/10"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeSection === 'whatsapp' && (
+                        <div className="space-y-8 animate-fade-in">
+                            <SectionHeader 
+                                title="Botón Flotante de WhatsApp" 
+                                subtitle="Configura el botón de contacto rápido que aparece en la esquina inferior de tu web"
+                                compact
+                            />
+
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+                                        <div>
+                                            <h5 className="text-sm font-bold text-slate-800">Mostrar Botón</h5>
+                                            <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Activar botón flotante en la web</p>
+                                        </div>
+                                        <label className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${config.whatsapp?.enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                                            <input
+                                                type="checkbox"
+                                                className="hidden"
+                                                checked={config.whatsapp?.enabled}
+                                                onChange={e => setConfig({ ...config, whatsapp: { ...config.whatsapp, enabled: e.target.checked } })}
+                                            />
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.whatsapp?.enabled ? 'left-7' : 'left-1'}`}></div>
+                                        </label>
+                                    </div>
+
+                                    <div className="p-8 bg-emerald-50 rounded-[2rem] border border-emerald-100">
+                                        <p className="text-[11px] text-emerald-800 font-medium leading-relaxed">
+                                            💡 <strong>Tip para el Número:</strong> El número de WhatsApp se toma de la sección "Datos de Contacto" → "WhatsApp". Si tienes múltiples sedes, los clientes podrán elegir a cuál escribir.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Etiqueta del Botón (Opcional)</label>
+                                        <input
+                                            value={config.whatsapp?.label || ''}
+                                            onChange={e => setConfig({ ...config, whatsapp: { ...config.whatsapp, label: e.target.value } })}
+                                            className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10"
+                                            placeholder="Ej: Chat con Asesora"
+                                        />
+                                        <p className="text-[10px] text-slate-400 italic">Si se deja vacío, se usará el texto automático según tu industria.</p>
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mensaje Predeterminado (Opcional)</label>
+                                        <textarea
+                                            value={config.whatsapp?.message || ''}
+                                            onChange={e => setConfig({ ...config, whatsapp: { ...config.whatsapp, message: e.target.value } })}
+                                            className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none h-32 resize-none focus:ring-2 focus:ring-emerald-500/10"
+                                            placeholder="Ej: Hola, me gustaría recibir más información..."
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeSection === 'header' && (
+                        <div className="space-y-8 animate-fade-in">
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="space-y-6">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Etiquetas del Menú</h4>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Inicio</label>
+                                            <input
+                                                value={config.header?.homeLabel || 'Inicio'}
+                                                onChange={e => setConfig({ ...config, header: { ...config.header, homeLabel: e.target.value } })}
+                                                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Servicios / Tratamientos</label>
+                                            <input
+                                                value={config.header?.servicesLabel || 'Tratamientos'}
+                                                onChange={e => setConfig({ ...config, header: { ...config.header, servicesLabel: e.target.value } })}
+                                                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Paquetes / Ofertas</label>
+                                            <input
+                                                value={config.header?.bundlesLabel || 'Paquetes'}
+                                                onChange={e => setConfig({ ...config, header: { ...config.header, bundlesLabel: e.target.value } })}
+                                                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Botón de Reserva (CTA)</label>
+                                            <input
+                                                value={config.header?.bookingLabel || 'Agendar'}
+                                                onChange={e => setConfig({ ...config, header: { ...config.header, bookingLabel: e.target.value } })}
+                                                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Información</h4>
+                                    <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 italic text-[11px] text-slate-500 leading-relaxed">
+                                        Configura los textos que tus clientes verán en la barra de navegación. Para gestionar el <strong>Banner de Anuncios</strong>, usa la nueva sección de "Banners y Ofertas".
                                     </div>
                                 </div>
                             </div>
@@ -513,6 +912,11 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                         setConfig({ ...config, hero: { ...config.hero, imageUrl: url } });
                     } else if (mediaPickerConfig.target === 'favicon') {
                         setConfig({ ...config, metadata: { ...config.metadata, faviconUrl: url } });
+                    } else if (mediaPickerConfig.target.startsWith('collage')) {
+                        const index = parseInt(mediaPickerConfig.target.replace('collage', ''));
+                        const newImages = [...(config.collage?.images || [])];
+                        newImages[index] = url;
+                        setConfig({ ...config, collage: { ...config.collage, images: newImages } });
                     }
                     setMediaPickerConfig({ isOpen: false, target: '' });
                 }}

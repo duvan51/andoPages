@@ -19,6 +19,8 @@ const SpecializedTreatments: React.FC<SpecializedTreatmentsProps> = ({ onService
   const { tenant } = useTenant();
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
+  const isFashion = tenant?.business_type === 'fashion';
+  const isTech = tenant?.template_id === 'services-tech';
 
   useEffect(() => {
     if (tenant) {
@@ -53,7 +55,9 @@ const SpecializedTreatments: React.FC<SpecializedTreatmentsProps> = ({ onService
       <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
         <div className="max-w-2xl">
           <h2 className="text-sm font-bold text-emerald-600 uppercase tracking-widest mb-3">Tratamientos Avanzados</h2>
-          <h3 className="text-4xl font-bold text-slate-900 leading-tight">Ciencia aplicada a la medicina alternativa</h3>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
+            {isFashion ? 'Nuestra' : isTech ? 'Nuestra' : 'Tratamientos'} <br className="hidden md:block" /> {isFashion ? 'Selección' : isTech ? 'Metodología' : 'Avanzados'}
+          </h2>
         </div>
         <div className="pb-2">
           <button
@@ -97,7 +101,9 @@ const SpecializedTreatments: React.FC<SpecializedTreatmentsProps> = ({ onService
             ¿Listo para dar el primer paso hacia su <span className="text-emerald-400">transformación</span>?
           </h4>
           <p className="text-emerald-100/70 text-lg">
-            Nuestros especialistas están listos para diseñar un plan de tratamiento único para usted.
+            {isFashion ? 'Nuestros looks son especiales para esos momentos donde debes brillar.' :
+             isTech ? 'Nuestros expertos están listos para diseñar una solución a su medida.' :
+             'Nuestros especialistas están listos para diseñar un plan de tratamiento único para usted.'}
           </p>
           <div className="flex flex-wrap gap-4 pt-4">
             <button
@@ -107,7 +113,7 @@ const SpecializedTreatments: React.FC<SpecializedTreatmentsProps> = ({ onService
               Agendar Diagnóstico
             </button>
             <button className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-bold transition-all backdrop-blur-sm">
-              Hablar con un Especialista
+              {isFashion ? 'Hablar con una asesora' : 'Hablar con un Especialista'}
             </button>
           </div>
         </div>
@@ -116,7 +122,7 @@ const SpecializedTreatments: React.FC<SpecializedTreatmentsProps> = ({ onService
             <img src="https://picsum.photos/seed/doctor-1/400/400" alt="Doctor" className="w-full h-full object-cover" />
           </div>
           <div className="absolute -bottom-4 -right-4 bg-emerald-500 text-emerald-950 px-6 py-2 rounded-full font-bold shadow-xl">
-            Médicos Expertos
+            {isFashion ? 'Asesoría VIP' : isTech ? 'Soporte Senior' : 'Médicos Expertos'}
           </div>
         </div>
       </div>
