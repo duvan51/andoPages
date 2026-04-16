@@ -96,7 +96,13 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="pt-10 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-[11px] uppercase tracking-widest text-emerald-100/40 font-bold">
-          <p>© {new Date().getFullYear()} {footer.copyright || `${tenant?.name || 'PROMEDID Colombia'}. Todos los derechos reservados.`}</p>
+          <div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+            <p>© {new Date().getFullYear()} {footer.copyright || `${tenant?.name || 'PROMEDID Colombia'}. Todos los derechos reservados.`}</p>
+            <span className="hidden md:inline text-white/10 opacity-20">•</span>
+            <p className="flex items-center gap-1.5">
+              Hecho con ❤️ por <a href="https://desarrollandoando.fun/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">www.andopages.com</a>
+            </p>
+          </div>
           <div className="flex gap-8">
             <a href="#" className="hover:text-white transition-colors">Términos de Uso</a>
             <a href="#" className="hover:text-white transition-colors">Política de Privacidad</a>
