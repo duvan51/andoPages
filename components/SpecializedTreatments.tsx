@@ -127,11 +127,6 @@ const SpecializedTreatments: React.FC<SpecializedTreatmentsProps> = ({ onService
           </div>
         </div>
       </div>
-          <div className="absolute -bottom-4 -right-4 bg-emerald-500 text-emerald-950 px-6 py-2 rounded-full font-bold shadow-xl">
-            {isFashion ? 'Asesoría VIP' : isTech ? 'Soporte Senior' : 'Médicos Expertos'}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
