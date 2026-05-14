@@ -101,12 +101,13 @@ const GalleryLightbox: React.FC<GalleryLightboxProps> = ({ media, initialIndex, 
               )}
             </div>
           ) : (
-            <div className="relative max-h-[85vh] md:max-h-[90vh]">
+            <div className="relative h-[80vh] md:h-[85vh] w-[95vw] max-w-7xl">
               <OptimizedImage
                 src={currentMedia.url} 
                 alt={`Gallery item ${currentIndex + 1}`} 
-                width={1200}
-                className="max-h-[85vh] md:max-h-[90vh] w-auto max-w-[95vw] object-contain rounded-xl md:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+                width={1600}
+                objectFit="contain"
+                className="w-full h-full rounded-xl md:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)]"
               />
             </div>
           )}
@@ -140,7 +141,9 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
   const [suggestedBundles, setSuggestedBundles] = useState<any[]>([]);
   const [isHeroOfferOpen, setIsHeroOfferOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [lightbox, setLightbox] = useState<{ isOpen: boolean; initialIndex: number }>({ isOpen: false, initialIndex: 0 });
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     fetchReviews();
@@ -197,6 +200,18 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy', err);
+    }
+  };
+
+  const handleVariantSelect = (variant: any, images: any[]) => {
+    setSelectedVariant(variant);
+    if (variant.image_url) {
+      const imgIndex = images.findIndex(item => item.url === variant.image_url);
+      if (imgIndex !== -1) {
+        setCurrentImageIndex(imgIndex);
+        // If we want to open the lightbox or scroll to it, we could do it here
+        // For now, let's just make sure the gallery display uses currentImageIndex
+      }
     }
   };
 
@@ -269,6 +284,43 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
                   {service.packagePrice && <span className="text-sm text-slate-400 font-medium">{service.packagePrice}</span>}
                 </p>
               )}
+
+              {/* Variant Selection UI */}
+              {service.variants && service.variants.length > 0 && (
+                <div className="mb-10 space-y-4">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Seleccionar Variación</label>
+                  <div className="flex flex-wrap gap-2">
+                    {service.variants.map((variant: any, idx: number) => (
+                      <button
+                        key={idx}
+                        disabled={variant.stock <= 0}
+                        onClick={() => {
+                          const variantImages = (service.variants || [])
+                            .map((v: any) => v.image_url)
+                            .filter((url: string | null): url is string => !!url);
+                          const galleryItems = Array.from(new Set([
+                            service.imageUrl,
+                            ...variantImages,
+                            ...(service.secondary_images || [])
+                          ])).filter(Boolean).map(url => ({ url: url as string, type: 'image' as const }));
+                          
+                          handleVariantSelect(variant, galleryItems);
+                        }}
+                        className={`px-6 py-3 rounded-xl border transition-all text-sm font-bold uppercase ${
+                          selectedVariant === variant 
+                            ? (isFashion ? 'bg-white text-slate-900 border-white' : 'bg-emerald-500 text-emerald-950 border-emerald-500')
+                            : variant.stock <= 0 
+                              ? 'bg-white/5 border-white/10 text-white/20 cursor-not-allowed'
+                              : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        {variant.size} {variant.color && `/ ${variant.color}`}
+                        {variant.stock <= 0 && <span className="ml-2 text-[8px] opacity-60">(Agotado)</span>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex flex-wrap gap-4">
                 {isFashion ? (
                   <>
@@ -277,11 +329,14 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
                         id: service.id || serviceId,
                         title: service.title,
                         price: service.price || 0,
-                        imageUrl: service.imageUrl,
+                        imageUrl: selectedVariant?.image_url || service.imageUrl,
                         type: 'product',
-                        companyId: tenant?.id || ''
+                        companyId: tenant?.id || '',
+                        selectedSize: selectedVariant?.size,
+                        selectedColor: selectedVariant?.color
                       })}
-                      className="bg-white text-slate-900 hover:bg-slate-100 shadow-xl shadow-white/10 px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2"
+                      disabled={service.variants && service.variants.length > 0 && !selectedVariant}
+                      className="bg-white text-slate-900 hover:bg-slate-100 shadow-xl shadow-white/10 px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingBag size={20} />
                       Agregar al carrito
@@ -331,15 +386,26 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
             {/* Galería Secundaria o Imagen Principal */}
             <div className="animate-scale-in">
               {(() => {
-                const galleryItems: { url: string; type: 'image' | 'video' }[] = [
-                  { url: service.imageUrl, type: 'image' },
-                  ...(service.secondary_images || []).map((url: string) => ({ url, type: 'image' as const })),
-                  ...(service.videos || []).map((url: string) => ({ url, type: 'video' as const }))
-                ];
+                const variantImages = (service.variants || [])
+                  .map((v: any) => v.image_url)
+                  .filter((url: string | null): url is string => !!url);
+
+                const galleryItems: { url: string; type: 'image' | 'video' }[] = Array.from(new Set([
+                  service.imageUrl,
+                  ...variantImages,
+                  ...(service.secondary_images || [])
+                ])).filter(Boolean).map(url => ({ url: url as string, type: 'image' as const }));
+
+                // Add videos
+                (service.videos || []).forEach((url: string) => {
+                  galleryItems.push({ url, type: 'video' });
+                });
 
                 const openGallery = (index: number) => {
                   setLightbox({ isOpen: true, initialIndex: index });
                 };
+
+                const activeImage = galleryItems[currentImageIndex] || galleryItems[0];
 
                 return (
                   <>
@@ -347,10 +413,10 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
                       <div className="grid grid-cols-2 gap-4">
                         <div 
                           className="col-span-2 rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl aspect-[16/9] mb-2 cursor-pointer group hover:border-emerald-500/50 transition-all"
-                          onClick={() => openGallery(0)}
+                          onClick={() => openGallery(currentImageIndex)}
                         >
                           <OptimizedImage 
-                            src={service.imageUrl} 
+                            src={activeImage.url} 
                             alt={service.title} 
                             className="w-full h-full transition-transform duration-700 group-hover:scale-105" 
                           />
@@ -385,10 +451,10 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
                     ) : (
                       <div 
                         className="rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl aspect-square max-w-md mx-auto lg:ml-auto cursor-pointer group hover:border-emerald-500/50 transition-all relative"
-                        onClick={() => openGallery(0)}
+                        onClick={() => openGallery(currentImageIndex)}
                       >
                         <OptimizedImage 
-                          src={service.imageUrl} 
+                          src={activeImage.url} 
                           alt={service.title} 
                           className="w-full h-full transition-transform duration-700 group-hover:scale-110" 
                         />

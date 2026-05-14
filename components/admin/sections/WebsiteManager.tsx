@@ -301,7 +301,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Título Principal</label>
                                         <input
-                                            value={config.hero.title}
+                                            value={config.hero?.title || ''}
                                             onChange={e => setConfig({ ...config, hero: { ...config.hero, title: e.target.value } })}
                                             className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all"
                                             placeholder="Ej: Transforme su salud con nosotros"
@@ -310,7 +310,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Subtítulo / Badge</label>
                                         <input
-                                            value={config.hero.subtitle}
+                                            value={config.hero?.subtitle || ''}
                                             onChange={e => setConfig({ ...config, hero: { ...config.hero, subtitle: e.target.value } })}
                                             className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all"
                                             placeholder="Ej: Innovación Médica"
@@ -319,7 +319,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Descripción</label>
                                         <textarea
-                                            value={config.hero.description}
+                                            value={config.hero?.description || ''}
                                             onChange={e => setConfig({ ...config, hero: { ...config.hero, description: e.target.value } })}
                                             className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none h-32 resize-none"
                                             placeholder="Una breve introducción de su empresa..."
@@ -353,7 +353,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Botón Primario</label>
                                             <input
-                                                value={config.hero.buttonText}
+                                                value={config.hero?.buttonText || ''}
                                                 onChange={e => setConfig({ ...config, hero: { ...config.hero, buttonText: e.target.value } })}
                                                 className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none"
                                             />
@@ -361,7 +361,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Botón Secundario</label>
                                             <input
-                                                value={config.hero.secondaryButtonText}
+                                                value={config.hero?.secondaryButtonText || ''}
                                                 onChange={e => setConfig({ ...config, hero: { ...config.hero, secondaryButtonText: e.target.value } })}
                                                 className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none"
                                             />
@@ -682,7 +682,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email de Contacto</label>
                                         <input
                                             type="email"
-                                            value={config.contact.email}
+                                            value={config.contact?.email || ''}
                                             onChange={e => setConfig({ ...config, contact: { ...config.contact, email: e.target.value } })}
                                             className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10"
                                             placeholder="contacto@empresa.com"
@@ -692,7 +692,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Teléfono Público</label>
                                         <input
                                             type="text"
-                                            value={config.contact.phone}
+                                            value={config.contact?.phone || ''}
                                             onChange={e => setConfig({ ...config, contact: { ...config.contact, phone: e.target.value } })}
                                             className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10"
                                             placeholder="+57 300 000 0000"
@@ -703,7 +703,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Dirección Física</label>
                                         <textarea
-                                            value={config.contact.address}
+                                            value={config.contact?.address || ''}
                                             onChange={e => setConfig({ ...config, contact: { ...config.contact, address: e.target.value } })}
                                             className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none h-32 resize-none"
                                             placeholder="Carrera 10 # 20-30, Edificio ProMedid..."
@@ -720,7 +720,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mensaje del Footer</label>
                                     <textarea
-                                        value={config.footer.description}
+                                        value={config.footer?.description || ''}
                                         onChange={e => setConfig({ ...config, footer: { ...config.footer, description: e.target.value } })}
                                         className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none h-24 resize-none"
                                         placeholder="Breve mensaje que aparecerá en la parte inferior de la web..."

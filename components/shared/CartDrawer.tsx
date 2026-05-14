@@ -13,9 +13,15 @@ const CartDrawer: React.FC = () => {
   if (!isCartOpen) return null;
 
   const handleCheckout = () => {
-    const itemsList = cart.map(item => `- ${item.quantity}x ${item.title} (${formatPriceCOP(item.price * item.quantity)})`).join('\n');
+    const itemsList = cart.map(item => {
+      const variationStr = [item.selectedSize, item.selectedColor].filter(Boolean).join(' / ');
+      return `- ${item.quantity}x ${item.title}${variationStr ? ` (${variationStr})` : ''} (${formatPriceCOP(item.price * item.quantity)})`;
+    }).join('\n');
     const message = `Hola! Me gustaría realizar un pedido:\n\n${itemsList}\n\n*Total: ${formatPriceCOP(totalPrice)}*`;
-    const whatsappUrl = getWhatsAppLeadUrl({ customMessage: message });
+    const whatsappUrl = getWhatsAppLeadUrl({ 
+      customMessage: message,
+      phoneNumber: tenant?.phone // Usamos el teléfono registrado de la empresa
+    });
     window.open(whatsappUrl, '_blank');
   };
 
@@ -75,7 +81,13 @@ const CartDrawer: React.FC = () => {
                   <div className="flex-grow flex flex-col justify-between py-1">
                     <div>
                       <div className="flex justify-between items-start">
-                        <h4 className="font-bold text-slate-900 text-sm line-clamp-1 leading-tight mb-1">{item.title}</h4>
+                        <div className="flex flex-col">
+                          <h4 className="font-bold text-slate-900 text-sm line-clamp-1 leading-tight mb-1">{item.title}</h4>
+                          <div className="flex gap-2 mb-1">
+                            {item.selectedSize && <span className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded uppercase font-black">{item.selectedSize}</span>}
+                            {item.selectedColor && <span className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded uppercase font-black">{item.selectedColor}</span>}
+                          </div>
+                        </div>
                         <button 
                           onClick={() => removeFromCart(item.id)}
                           className="text-slate-300 hover:text-red-500 transition-colors ml-2"

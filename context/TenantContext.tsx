@@ -122,17 +122,22 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                 const errorMsg = err.message || String(err);
                 const isAbort = errorMsg.includes('AbortError') || errorMsg.includes('signal is aborted');
 
+                const pathSegments = window.location.pathname.split('/').filter(Boolean);
+                const protectedPaths = ['admin', 'login', 'dashboard', 'api', 'assets', 'static', 'home'];
+                const isTryingToLoadTenantPath = pathSegments.length > 0 && !protectedPaths.includes(pathSegments[0].toLowerCase());
+
                 if (isAbort) {
-                    if (retryCount < 3) {
+                    if (retryCount < 5) { // Aumentamos los reintentos a 5
                         identifyingRef.current = false;
-                        setTimeout(() => identifyTenant(retryCount + 1), 200);
+                        // Espera progresiva: 500ms, 1000ms, 1500ms...
+                        setTimeout(() => identifyTenant(retryCount + 1), 500 * (retryCount + 1));
                     } else {
-                        // Si después de 3 intentos sigue abortando, pero es dominio principal,
-                        // simplemente dejamos de intentar y mostramos el SaaSLanding.
-                        if (isMain) {
+                        // Si después de 5 intentos falla, y estábamos en la raíz, mostramos el home principal
+                        if (isMain && !isTryingToLoadTenantPath) {
                             setIsMainDomain(true);
                             setIsError(false);
                         } else {
+                            // Si estábamos intentando cargar /camisas-crist, mostramos error en vez de la página principal
                             setIsError(true);
                         }
                         setIsLoading(false);
@@ -140,7 +145,12 @@ export const TenantProvider: React.FC<{ children: React.ReactNode; previewTenant
                     }
                 } else {
                     console.error('Error no recuperable en detección:', err);
-                    if (!isMain) setIsError(true);
+                    if (isMain && !isTryingToLoadTenantPath) {
+                        setIsMainDomain(true);
+                        setIsError(false);
+                    } else {
+                        setIsError(true);
+                    }
                     setIsLoading(false);
                     identifyingRef.current = false;
                 }

@@ -26,7 +26,7 @@ interface ProductsManagerProps {
     companyId?: string;
 }
 
-const CATEGORIES = ['Diagnóstico', 'Sueroterapia', 'Terapias', 'Estética', 'Multivitamínicos'];
+// Removed hardcoded CATEGORIES array to use database categories state
 
 const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
     const [products, setProducts] = useState<any[]>([]);
@@ -37,7 +37,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
     const [newCategoryName, setNewCategoryName] = useState('');
     const [isAddingCategory, setIsAddingCategory] = useState(false);
     const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
-    const [pickingFor, setPickingFor] = useState<{ type: 'primary' | 'secondary' | 'video', index?: number } | null>(null);
+    const [pickingFor, setPickingFor] = useState<{ type: 'primary' | 'secondary' | 'video' | 'variant', index?: number } | null>(null);
     const [productToDelete, setProductToDelete] = useState<{ id: string, title: string } | null>(null);
     
     // Global Tags Management
@@ -125,11 +125,18 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
         try {
             const { treatment_benefits, ...productData } = editingProduct;
 
+            // Calcular stock total si hay variantes
+            let totalStock = productData.stock || 0;
+            if (productData.variants && productData.variants.length > 0) {
+                totalStock = productData.variants.reduce((acc: number, v: any) => acc + (parseInt(v.stock) || 0), 0);
+            }
+
             // Upsert product
             const { data: savedProduct, error: productError } = await supabase
                 .from('treatments')
                 .upsert({
                     ...productData,
+                    stock: totalStock,
                     id: productData.id || `${companyId}-${productData.title.toLowerCase().replace(/\s+/g, '-')}`,
                     company_id: companyId
                 })
@@ -277,9 +284,14 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                             <div className="flex-grow flex flex-col justify-between">
                                 <div>
                                     <div className="flex justify-between items-start">
-                                        <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 inline-block">
-                                            {p.category}
-                                        </span>
+                                        <div className="flex gap-2">
+                                            <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 inline-block">
+                                                {p.category}
+                                            </span>
+                                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 inline-block ${p.product_type === 'service' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
+                                                {p.product_type === 'service' ? '🛠️ Servicio' : '📦 Producto'}
+                                            </span>
+                                        </div>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button onClick={() => setEditingProduct(p)} className="p-2 text-slate-400 hover:text-emerald-600"><Edit2 size={16} /></button>
                                             <button onClick={() => setProductToDelete({ id: p.id, title: p.title })} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={16} /></button>
@@ -358,11 +370,15 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
 
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Precio</label>
-                                    <div className="relative">
-                                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                                        <input value={editingProduct.price} onChange={e => setEditingProduct({ ...editingProduct, price: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl pl-10 p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all" />
-                                    </div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Item</label>
+                                    <select 
+                                        className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all appearance-none"
+                                        value={editingProduct.product_type || 'product'}
+                                        onChange={e => setEditingProduct({ ...editingProduct, product_type: e.target.value })}
+                                    >
+                                        <option value="product">📦 Producto Tangible</option>
+                                        <option value="service">🛠️ Servicio / Digital</option>
+                                    </select>
                                 </div>
                                 <div className="flex items-center gap-3 pt-6 px-2">
                                     <button type="button" onClick={() => setEditingProduct({ ...editingProduct, active: !editingProduct.active })} className={`w-10 h-5 rounded-full transition-all relative ${editingProduct.active ? 'bg-emerald-500' : 'bg-slate-300'}`}>
@@ -370,6 +386,141 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                     </button>
                                     <span className="text-[10px] font-black text-slate-500 uppercase">Activo en la web</span>
                                 </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Precio de Venta</label>
+                                    <div className="relative">
+                                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                        <input value={editingProduct.price} onChange={e => setEditingProduct({ ...editingProduct, price: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl pl-10 p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all" />
+                                    </div>
+                                </div>
+                                
+                                {editingProduct.product_type === 'product' && (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Precio de Costo</label>
+                                            <div className="relative">
+                                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                                <input 
+                                                    type="number"
+                                                    value={editingProduct.cost_price || 0} 
+                                                    onChange={e => setEditingProduct({ ...editingProduct, cost_price: parseFloat(e.target.value) || 0 })} 
+                                                    className="w-full bg-slate-50 border-none rounded-2xl pl-10 p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all" 
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">SKU / Código</label>
+                                            <input 
+                                                value={editingProduct.sku || ''} 
+                                                onChange={e => setEditingProduct({ ...editingProduct, sku: e.target.value })} 
+                                                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all" 
+                                                placeholder="ABC-123"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-2 lg:col-span-2 space-y-4 border border-slate-100 p-6 rounded-[32px] bg-slate-50/50">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Variantes (Talla / Color / Stock)</label>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newVariants = [...(editingProduct.variants || []), { size: '', color: '', stock: 0 }];
+                                                        setEditingProduct({...editingProduct, variants: newVariants});
+                                                    }}
+                                                    className="text-emerald-600 font-bold text-[10px] uppercase hover:underline"
+                                                >
+                                                    + Añadir Variante
+                                                </button>
+                                            </div>
+                                            
+                                            <div className="space-y-3">
+                                                {(editingProduct.variants || []).map((variant: any, index: number) => (
+                                                    <div key={index} className="grid grid-cols-5 gap-3 items-end bg-white p-3 rounded-2xl border border-slate-100 shadow-sm group/v">
+                                                        <div className="space-y-1">
+                                                            <p className="text-[8px] font-black text-slate-400 uppercase">Talla</p>
+                                                            <input 
+                                                                placeholder="S, M..."
+                                                                className="w-full bg-slate-50 border-none rounded-lg py-2 px-3 text-xs font-bold text-slate-700 outline-none focus:ring-1 focus:ring-emerald-500/20"
+                                                                value={variant.size}
+                                                                onChange={e => {
+                                                                    const newVariants = [...editingProduct.variants];
+                                                                    newVariants[index].size = e.target.value;
+                                                                    setEditingProduct({...editingProduct, variants: newVariants});
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <p className="text-[8px] font-black text-slate-400 uppercase">Color</p>
+                                                            <input 
+                                                                placeholder="Color..."
+                                                                className="w-full bg-slate-50 border-none rounded-lg py-2 px-3 text-xs font-bold text-slate-700 outline-none focus:ring-1 focus:ring-emerald-500/20"
+                                                                value={variant.color}
+                                                                onChange={e => {
+                                                                    const newVariants = [...editingProduct.variants];
+                                                                    newVariants[index].color = e.target.value;
+                                                                    setEditingProduct({...editingProduct, variants: newVariants});
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <p className="text-[8px] font-black text-slate-400 uppercase">Stock</p>
+                                                            <input 
+                                                                type="number"
+                                                                className="w-full bg-slate-50 border-none rounded-lg py-2 px-3 text-xs font-bold text-slate-700 outline-none focus:ring-1 focus:ring-emerald-500/20"
+                                                                value={variant.stock}
+                                                                onChange={e => {
+                                                                    const newVariants = [...editingProduct.variants];
+                                                                    newVariants[index].stock = parseInt(e.target.value) || 0;
+                                                                    setEditingProduct({...editingProduct, variants: newVariants});
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <p className="text-[8px] font-black text-slate-400 uppercase">Foto</p>
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setPickingFor({ type: 'variant', index });
+                                                                    setIsMediaPickerOpen(true);
+                                                                }}
+                                                                className="w-full h-8 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center overflow-hidden hover:border-emerald-500 transition-all relative group"
+                                                            >
+                                                                {variant.image_url ? (
+                                                                    <>
+                                                                        <img src={variant.image_url} alt="" className="w-full h-full object-cover" />
+                                                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                                            <Upload size={10} className="text-white" />
+                                                                        </div>
+                                                                    </>
+                                                                ) : (
+                                                                    <ImageIcon size={14} className="text-slate-300" />
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                        <div className="flex gap-1">
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newVariants = editingProduct.variants.filter((_: any, i: number) => i !== index);
+                                                                    setEditingProduct({...editingProduct, variants: newVariants});
+                                                                }}
+                                                                className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                
+                                                {(!editingProduct.variants || editingProduct.variants.length === 0) && (
+                                                    <p className="text-center py-4 text-slate-400 text-xs italic">No hay variantes definidas. Añade una para controlar stock.</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -790,6 +941,12 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                             newVids.push(url);
                         }
                         setEditingProduct({ ...editingProduct, videos: newVids });
+                    } else if (pickingFor?.type === 'variant') {
+                        const newVariants = [...(editingProduct.variants || [])];
+                        if (pickingFor.index !== undefined) {
+                            newVariants[pickingFor.index].image_url = url;
+                        }
+                        setEditingProduct({ ...editingProduct, variants: newVariants });
                     }
                     setIsMediaPickerOpen(false);
                     setPickingFor(null);

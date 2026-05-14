@@ -8,6 +8,8 @@ export interface CartItem {
   quantity: number;
   type: 'product' | 'bundle';
   companyId: string;
+  selectedSize?: string;
+  selectedColor?: string;
 }
 
 interface CartContextType {
@@ -47,15 +49,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addToCart = (newItem: Omit<CartItem, 'quantity'>) => {
     setCart(prev => {
-      const existing = prev.find(item => item.id === newItem.id);
+      const existing = prev.find(item => 
+        item.id === newItem.id && 
+        item.selectedSize === newItem.selectedSize && 
+        item.selectedColor === newItem.selectedColor
+      );
+      
       if (existing) {
         return prev.map(item => 
-          item.id === newItem.id ? { ...item, quantity: item.quantity + 1 } : item
+          (item.id === newItem.id && item.selectedSize === newItem.selectedSize && item.selectedColor === newItem.selectedColor)
+            ? { ...item, quantity: item.quantity + 1 } 
+            : item
         );
       }
       return [...prev, { ...newItem, quantity: 1 }];
     });
-    setIsCartOpen(true); // Open cart automatically when adding item
+    setIsCartOpen(true);
   };
 
   const removeFromCart = (id: string) => {
