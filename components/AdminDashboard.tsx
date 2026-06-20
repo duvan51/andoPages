@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import AdminLayout from './admin/layout/AdminLayout';
 import WebsiteManager from './admin/sections/WebsiteManager';
 import ProductsManager from './admin/sections/Products';
@@ -24,16 +25,39 @@ const AdminDashboard: React.FC = () => {
     const [managedCompany, setManagedCompany] = useState<any>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
 
+    // Password Recovery States
+    const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [showResetPassword, setShowResetPassword] = useState(false);
+    const [isResetting, setIsResetting] = useState(false);
+
+    // Onboarding Form States
+    const [onboardingName, setOnboardingName] = useState('');
+    const [onboardingSlug, setOnboardingSlug] = useState('');
+    const [onboardingType, setOnboardingType] = useState('medical');
+    const [onboardingColor, setOnboardingColor] = useState('#10b981');
+    const [isOnboardingSubmitting, setIsOnboardingSubmitting] = useState(false);
+
     useEffect(() => {
+        // Detect if URL contains password recovery hash
+        const hash = window.location.hash;
+        if (hash.includes('type=recovery')) {
+            setIsRecoveryMode(true);
+        }
 
-        // Listen for Supabase Auth changes (for Google Login)
+        // Listen for Supabase Auth changes (for Google Login & Password Recovery)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-
+            if (event === 'PASSWORD_RECOVERY') {
+                setIsRecoveryMode(true);
+                if (session) {
+                    setUserEmail(session.user.email || null);
+                }
+                return;
+            }
             
             if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
                 const email = session.user.email || null;
                 setUserEmail(email);
-
 
                 // 1. Verificar si es el ÚNICO Super Admin
                 const superAdmins = ['aponteramirezduvan@gmail.com'];
@@ -46,7 +70,6 @@ const AdminDashboard: React.FC = () => {
                     localStorage.setItem('promedid_admin_session', 'active');
                     localStorage.setItem('promedid_admin_role', 'superadmin');
                 } else {
-
                     // 2. Verificar Administradores Organizacionales en la tabla companies
                     try {
                         const { data: company, error: dbError } = await supabase
@@ -56,7 +79,6 @@ const AdminDashboard: React.FC = () => {
                             .maybeSingle();
 
                         if (company) {
-
                             setIsSuperAdmin(false);
                             setIsLoggedIn(true);
                             setCurrentCompanyId(company.id);
@@ -64,9 +86,13 @@ const AdminDashboard: React.FC = () => {
                             localStorage.setItem('promedid_admin_role', 'tenant');
                             localStorage.setItem('promedid_admin_company', company.id);
                         } else {
-                            console.log('Acceso denegado: Correo no vinculado a ninguna empresa.');
-                            setError('Tu correo no tiene permisos para acceder a ninguna empresa.');
-                            await supabase.auth.signOut();
+                            console.log('Usuario nuevo: Redirigiendo a onboarding.');
+                            setIsSuperAdmin(false);
+                            setIsLoggedIn(true);
+                            setCurrentCompanyId(undefined);
+                            localStorage.setItem('promedid_admin_session', 'active');
+                            localStorage.setItem('promedid_admin_role', 'onboarding');
+                            localStorage.removeItem('promedid_admin_company');
                         }
                     } catch (err) {
                         console.error('Error al validar cuenta:', err);
@@ -159,7 +185,24 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
+    const handleForgotPassword = async (email: string) => {
+        try {
+            setError('');
+            const redirectTo = `${window.location.origin}${window.location.pathname}`;
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo,
+            });
+            if (error) throw error;
+        } catch (err: any) {
+            setError(err.message || 'Error al enviar el correo de recuperación.');
+            throw err;
+        }
+    };
+
     const handleLogin = async (email: string, pass: string, remember: boolean) => {
+        setError('');
+        let supabaseAuthErrorMsg = '';
+
         // 1. Master Login for Super Admin
         if (email === 'aponteramirezduvan@gmail.com' && pass === '000000') {
             setIsSuperAdmin(true);
@@ -190,7 +233,24 @@ const AdminDashboard: React.FC = () => {
             return;
         }
 
-        // 2. Tenant Login
+        // 2. Try Supabase Auth Login first (For newly registered or migrated users)
+        try {
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password: pass
+            });
+
+            if (!authError && authData.session) {
+                setError('');
+                return;
+            } else if (authError) {
+                supabaseAuthErrorMsg = authError.message;
+            }
+        } catch (authErr: any) {
+            console.log('Supabase Auth login failed, falling back to direct DB check...', authErr);
+        }
+
+        // 3. Fallback: Tenant Login via direct DB check (For legacy accounts with plain text passwords)
         try {
             const { data, error } = await supabase
                 .from('companies')
@@ -211,10 +271,30 @@ const AdminDashboard: React.FC = () => {
                 }
                 setError('');
             } else {
-                setError('Credenciales incorrectas.');
+                if (supabaseAuthErrorMsg) {
+                    if (supabaseAuthErrorMsg.toLowerCase().includes('confirm') || supabaseAuthErrorMsg.toLowerCase().includes('verified')) {
+                        setError('Debes confirmar tu correo electrónico. Por favor revisa tu bandeja de entrada.');
+                    } else if (supabaseAuthErrorMsg.toLowerCase().includes('invalid login credentials')) {
+                        setError('Credenciales incorrectas (verifica tu correo y contraseña).');
+                    } else {
+                        setError(supabaseAuthErrorMsg);
+                    }
+                } else {
+                    setError('Credenciales incorrectas o cuenta no registrada.');
+                }
             }
         } catch (err) {
-            setError('Error de conexión.');
+            if (supabaseAuthErrorMsg) {
+                if (supabaseAuthErrorMsg.toLowerCase().includes('confirm') || supabaseAuthErrorMsg.toLowerCase().includes('verified')) {
+                    setError('Debes confirmar tu correo electrónico. Por favor revisa tu bandeja de entrada.');
+                } else if (supabaseAuthErrorMsg.toLowerCase().includes('invalid login credentials')) {
+                    setError('Credenciales incorrectas (verifica tu correo y contraseña).');
+                } else {
+                    setError(supabaseAuthErrorMsg);
+                }
+            } else {
+                setError('Error de conexión o credenciales incorrectas.');
+            }
         }
     };
 
@@ -238,6 +318,151 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
+    const handleCreateCompany = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!onboardingName || !onboardingSlug) {
+            alert('Por favor completa todos los campos.');
+            return;
+        }
+
+        setIsOnboardingSubmitting(true);
+        setError('');
+
+        const cleanSlug = onboardingSlug
+            .toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+            .replace(/[^a-z0-9-]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+
+        try {
+            // 1. Check if slug is unique
+            const { data: existing } = await supabase
+                .from('companies')
+                .select('id')
+                .eq('slug', cleanSlug)
+                .maybeSingle();
+
+            if (existing) {
+                setError('El subdominio ya está en uso. Por favor elige otro.');
+                setIsOnboardingSubmitting(false);
+                return;
+            }
+
+            const email = userEmail || (await supabase.auth.getUser()).data.user?.email;
+
+            if (!email) {
+                setError('No se pudo identificar tu sesión de usuario. Por favor vuelve a iniciar sesión.');
+                setIsOnboardingSubmitting(false);
+                return;
+            }
+
+            // 2. Insert new company
+            const payload = {
+                name: onboardingName,
+                slug: cleanSlug,
+                business_type: onboardingType,
+                template_id: onboardingType === 'medical' ? 'medical-modern' : onboardingType === 'fashion' ? 'fashion-luxury' : 'services-clean',
+                admin_email: email,
+                admin_password: '', // Authenticating through Supabase Auth/OAuth
+                primary_color: onboardingColor,
+                status: 'active',
+                config: {
+                    hero: {
+                        title: `Bienvenido a ${onboardingName}`,
+                        subtitle: onboardingType === 'medical' ? 'Renovación y Bienestar' : onboardingType === 'fashion' ? 'Nueva Colección' : 'Servicios Profesionales',
+                        description: 'Estamos comprometidos con tu bienestar y satisfacción.',
+                        buttonText: 'Ver Servicios',
+                        secondaryButtonText: 'Contáctanos'
+                    },
+                    contact: {
+                        email: email,
+                        phone: '+57 300 000 0000',
+                        address: 'Dirección Principal'
+                    },
+                    metadata: {
+                        title: `${onboardingName} | Sitio Oficial`,
+                        faviconUrl: ''
+                    }
+                }
+            };
+
+            const { data: newCompany, error: insertError } = await supabase
+                .from('companies')
+                .insert([payload])
+                .select()
+                .single();
+
+            if (insertError) throw insertError;
+
+            if (newCompany) {
+                alert('¡Tu sitio web ha sido creado con éxito!');
+                
+                // Update session state
+                setCurrentCompanyId(newCompany.id);
+                localStorage.setItem('promedid_admin_session', 'active');
+                localStorage.setItem('promedid_admin_role', 'tenant');
+                localStorage.setItem('promedid_admin_company', newCompany.id);
+                
+                // Clear onboarding inputs
+                setOnboardingName('');
+                setOnboardingSlug('');
+                setOnboardingType('medical');
+                setOnboardingColor('#10b981');
+            }
+        } catch (err: any) {
+            setError(err.message || 'Error al crear la empresa.');
+        } finally {
+            setIsOnboardingSubmitting(false);
+        }
+    };
+
+    const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsResetting(true);
+        setError('');
+
+        try {
+            const { data, error: authError } = await supabase.auth.updateUser({
+                password: newPassword
+            });
+
+            if (authError) throw authError;
+
+            const email = data?.user?.email || userEmail;
+
+            if (email) {
+                // Update password in companies table (plain-text admin_password)
+                const { error: dbError } = await supabase
+                    .from('companies')
+                    .update({ admin_password: newPassword })
+                    .eq('admin_email', email);
+
+                if (dbError) {
+                    console.error('Error syncing database password:', dbError);
+                }
+            }
+
+            alert('Contraseña actualizada con éxito. Por favor inicia sesión con tu nueva contraseña.');
+            
+            await supabase.auth.signOut();
+            setIsRecoveryMode(false);
+            setIsLoggedIn(false);
+            setIsSuperAdmin(false);
+            localStorage.removeItem('promedid_admin_session');
+            localStorage.removeItem('promedid_admin_role');
+            localStorage.removeItem('promedid_admin_company');
+            setNewPassword('');
+            
+            // Clean hash URL
+            window.history.pushState({}, '', '/admin');
+            window.dispatchEvent(new Event('popstate'));
+        } catch (err: any) {
+            setError(err.message || 'Error al restablecer la contraseña.');
+        } finally {
+            setIsResetting(false);
+        }
+    };
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -256,14 +481,210 @@ const AdminDashboard: React.FC = () => {
         return `/${managedCompany.slug}`;
     };
 
+    if (isRecoveryMode) {
+        return (
+            <div className="min-h-screen bg-emerald-50/50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                {/* Background Decorative Elements */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-100/50 rounded-full -mr-64 -mt-64 blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-100/50 rounded-full -ml-64 -mb-64 blur-3xl"></div>
+
+                <div className="w-full max-w-md relative z-10">
+                    <div className="text-center mb-10">
+                        <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl mx-auto mb-6 shadow-xl shadow-emerald-600/30 animate-float">
+                            P
+                        </div>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                            Restablecer Contraseña
+                        </h1>
+                        <p className="text-slate-500 font-semibold mt-2 px-8">
+                            Ingresa tu nueva contraseña para actualizar tu cuenta.
+                        </p>
+                    </div>
+
+                    <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-emerald-900/10 border border-slate-100">
+                        <form onSubmit={handleResetPasswordSubmit} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Nueva Contraseña</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                                        <Lock size={18} />
+                                    </div>
+                                    <input
+                                        required
+                                        type={showResetPassword ? 'text' : 'password'}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="block w-full pl-11 pr-11 py-4 bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 rounded-2xl transition-all text-sm font-semibold text-slate-900"
+                                        placeholder="••••••••••••"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowResetPassword(!showResetPassword)}
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        {showResetPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {error && (
+                                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-bold border border-red-100 animate-shake">
+                                    {error}
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={isResetting}
+                                className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-2 group disabled:opacity-50"
+                            >
+                                {isResetting ? 'Guardando...' : 'Actualizar Contraseña'}
+                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (!isLoggedIn) {
         return (
             <AdminAuth 
                 onLogin={handleLogin} 
                 onRegister={handleRegister} 
                 onGoogleLogin={handleGoogleLogin} 
+                onForgotPassword={handleForgotPassword}
                 error={error} 
             />
+        );
+    }
+
+    if (isLoggedIn && !currentCompanyId && !isSuperAdmin) {
+        return (
+            <div className="min-h-screen bg-emerald-50/50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                {/* Background Decorative Elements */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-100/50 rounded-full -mr-64 -mt-64 blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-100/50 rounded-full -ml-64 -mb-64 blur-3xl"></div>
+
+                <div className="w-full max-w-2xl relative z-10 animate-fade-in">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl mx-auto mb-6 shadow-xl shadow-emerald-600/30 animate-float">
+                            A
+                        </div>
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                            ¡Bienvenido a AndoPages!
+                        </h1>
+                        <p className="text-slate-500 font-semibold mt-2 px-8">
+                            Vamos a configurar tu primer sitio web. Rellena los datos básicos a continuación para comenzar.
+                        </p>
+                    </div>
+
+                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl shadow-emerald-900/10 border border-slate-100">
+                        <form onSubmit={handleCreateCompany} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Nombre Comercial de la Empresa</label>
+                                <input
+                                    required
+                                    type="text"
+                                    value={onboardingName}
+                                    onChange={(e) => {
+                                        setOnboardingName(e.target.value);
+                                        const clean = e.target.value
+                                            .toLowerCase()
+                                            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+                                            .replace(/[^a-z0-9\s-]/g, '')
+                                            .trim()
+                                            .replace(/\s+/g, '-');
+                                        setOnboardingSlug(clean);
+                                    }}
+                                    className="block w-full px-5 py-4 bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 rounded-2xl transition-all text-sm font-semibold text-slate-900"
+                                    placeholder="Ej: Clínica Dental San José"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Giro de Negocio</label>
+                                <div className="grid grid-cols-3 gap-4">
+                                    {[
+                                        { id: 'medical', label: '🏥 Clínica / SPA', desc: 'Consultorios, Estética' },
+                                        { id: 'fashion', label: '👗 Tienda de Moda', desc: 'Boutique, Ropa' },
+                                        { id: 'services', label: '🛠️ Servicios', desc: 'Software, Asesoría' }
+                                    ].map((t) => (
+                                        <div
+                                            key={t.id}
+                                            onClick={() => setOnboardingType(t.id)}
+                                            className={`cursor-pointer p-4 rounded-2xl border-2 transition-all flex flex-col items-center text-center justify-center ${onboardingType === t.id ? 'border-emerald-500 bg-emerald-50/50 text-emerald-900' : 'border-slate-100 hover:border-slate-200 bg-white text-slate-500'}`}
+                                        >
+                                            <span className="text-sm font-bold leading-snug">{t.label}</span>
+                                            <span className="text-[9px] text-slate-400 font-semibold mt-1">{t.desc}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Subdominio (URL de tu sitio)</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        value={onboardingSlug}
+                                        onChange={(e) => setOnboardingSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                                        className="block w-full px-5 py-4 bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 rounded-2xl transition-all text-sm font-semibold text-slate-900"
+                                        placeholder="ej: dental-sanjose"
+                                    />
+                                    <p className="text-[10px] text-slate-400 font-semibold ml-1">
+                                        URL: <span className="text-emerald-600 font-bold">{onboardingSlug || 'empresa'}.andopages.com</span>
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Color de Marca</label>
+                                    <div className="flex gap-3">
+                                        <input
+                                            type="color"
+                                            value={onboardingColor}
+                                            onChange={(e) => setOnboardingColor(e.target.value)}
+                                            className="w-14 h-14 rounded-2xl border-none p-0 overflow-hidden cursor-pointer shrink-0"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={onboardingColor}
+                                            onChange={(e) => setOnboardingColor(e.target.value)}
+                                            className="block w-full px-5 py-4 bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 rounded-2xl transition-all text-sm font-mono font-bold text-slate-900 uppercase"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {error && (
+                                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-bold border border-red-100 animate-shake">
+                                    {error}
+                                </div>
+                            )}
+
+                            <div className="flex gap-4 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={handleLogout}
+                                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-2xl transition-all"
+                                >
+                                    Cerrar Sesión
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isOnboardingSubmitting}
+                                    className="flex-[2] bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-2 group disabled:opacity-50"
+                                >
+                                    {isOnboardingSubmitting ? 'Configurando...' : 'Crear mi Sitio Web'}
+                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         );
     }
 
@@ -373,3 +794,4 @@ const AdminDashboard: React.FC = () => {
 };
 
 export default AdminDashboard;
+

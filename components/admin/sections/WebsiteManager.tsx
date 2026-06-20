@@ -110,7 +110,7 @@ const WebsiteManager: React.FC<WebsiteManagerProps> = ({ companyId }) => {
         setIsLoading(true);
         const { data, error } = await supabase
             .from('companies')
-            .select('config, name, custom_domain, seo_verification_code')
+            .select('config, name, custom_domain, seo_verification_code, business_type')
             .eq('id', companyId)
             .single();
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTenant } from '../hooks/useTenant';
 import { supabase } from '../lib/supabase';
+import { MessageSquare } from 'lucide-react';
 
 const ContactForm: React.FC = () => {
   const { tenant } = useTenant();
