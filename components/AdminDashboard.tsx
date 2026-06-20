@@ -38,6 +38,16 @@ const AdminDashboard: React.FC = () => {
     const [onboardingColor, setOnboardingColor] = useState('#10b981');
     const [isOnboardingSubmitting, setIsOnboardingSubmitting] = useState(false);
 
+    // Change Password States (under Settings tab)
+    const [changePassword, setChangePassword] = useState('');
+    const [confirmChangePassword, setConfirmChangePassword] = useState('');
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [showChangePassword, setShowChangePassword] = useState(false);
+    const [showConfirmChangePassword, setShowConfirmChangePassword] = useState(false);
+    const [changePasswordSuccess, setChangePasswordSuccess] = useState('');
+    const [changePasswordError, setChangePasswordError] = useState('');
+
+
     useEffect(() => {
         // Detect if URL contains password recovery hash
         const hash = window.location.hash;
@@ -114,6 +124,12 @@ const AdminDashboard: React.FC = () => {
         if (session === 'active') {
             setIsLoggedIn(true);
             setIsSuperAdmin(role === 'superadmin');
+            if (role === 'superadmin') {
+                setUserEmail('aponteramirezduvan@gmail.com');
+            } else {
+                const storedEmail = localStorage.getItem('promedid_admin_email');
+                if (storedEmail) setUserEmail(storedEmail);
+            }
             if (companyId) setCurrentCompanyId(companyId);
         }
 
@@ -136,6 +152,10 @@ const AdminDashboard: React.FC = () => {
                     .maybeSingle();
                 if (data) {
                     setManagedCompany(data);
+                    if (!userEmail && data.admin_email) {
+                        setUserEmail(data.admin_email);
+                        localStorage.setItem('promedid_admin_email', data.admin_email);
+                    }
                 }
             } catch (err) {
                 console.error('Error fetching company info:', err);
@@ -263,6 +283,8 @@ const AdminDashboard: React.FC = () => {
                 setIsSuperAdmin(false);
                 setIsLoggedIn(true);
                 setCurrentCompanyId(data.id);
+                setUserEmail(data.admin_email);
+                localStorage.setItem('promedid_admin_email', data.admin_email);
 
                 if (remember) {
                     localStorage.setItem('promedid_admin_session', 'active');
@@ -464,6 +486,66 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
+    const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!changePassword || !confirmChangePassword) {
+            setChangePasswordError('Por favor completa todos los campos.');
+            return;
+        }
+        if (changePassword !== confirmChangePassword) {
+            setChangePasswordError('Las contraseñas no coinciden.');
+            return;
+        }
+        if (changePassword.length < 6) {
+            setChangePasswordError('La contraseña debe tener al menos 6 caracteres.');
+            return;
+        }
+
+        setIsChangingPassword(true);
+        setChangePasswordError('');
+        setChangePasswordSuccess('');
+
+        try {
+            // 1. Try to update user password in Supabase Auth (if active session exists)
+            const sessionResult = await supabase.auth.getSession();
+            let authErrorOccurred = false;
+            
+            if (sessionResult.data.session) {
+                const { error: authError } = await supabase.auth.updateUser({
+                    password: changePassword
+                });
+                if (authError) {
+                    console.error('Error updating password in Supabase Auth:', authError);
+                    authErrorOccurred = true;
+                }
+            }
+
+            // 2. Update password in companies table (plain-text admin_password) for sync / fallback login
+            const email = userEmail || sessionResult.data.session?.user?.email || localStorage.getItem('promedid_admin_email');
+            
+            if (email) {
+                const { error: dbError } = await supabase
+                    .from('companies')
+                    .update({ admin_password: changePassword })
+                    .eq('admin_email', email);
+
+                if (dbError) {
+                    throw new Error('Error al actualizar la contraseña en la base de datos: ' + dbError.message);
+                }
+            } else if (authErrorOccurred) {
+                throw new Error('No se pudo identificar la cuenta para cambiar la contraseña.');
+            }
+
+            setChangePasswordSuccess('¡Contraseña actualizada con éxito!');
+            setChangePassword('');
+            setConfirmChangePassword('');
+        } catch (err: any) {
+            setChangePasswordError(err.message || 'Error al actualizar la contraseña.');
+        } finally {
+            setIsChangingPassword(false);
+        }
+    };
+
     const handleLogout = async () => {
         await supabase.auth.signOut();
         setIsLoggedIn(false);
@@ -472,6 +554,7 @@ const AdminDashboard: React.FC = () => {
         localStorage.removeItem('promedid_admin_session');
         localStorage.removeItem('promedid_admin_role');
         localStorage.removeItem('promedid_admin_company');
+        localStorage.removeItem('promedid_admin_email');
         window.history.pushState({}, '', '/');
         window.dispatchEvent(new Event('popstate'));
     };
@@ -774,6 +857,86 @@ const AdminDashboard: React.FC = () => {
                                         : "Acceso Restringido: Tu cuenta está vinculada estrictamente a esta organización."
                                     }
                                 </p>
+                            </div>
+
+                            {/* Cambiar Contraseña */}
+                            <div className="space-y-6 pt-6 border-t border-slate-50">
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                                    <div className="w-1.5 h-6 bg-emerald-600 rounded-full"></div>
+                                    Seguridad de la Cuenta
+                                </h3>
+
+                                <form onSubmit={handleChangePasswordSubmit} className="space-y-6 max-w-xl">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Nueva Contraseña</label>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                                                    <Lock size={16} />
+                                                </div>
+                                                <input
+                                                    required
+                                                    type={showChangePassword ? 'text' : 'password'}
+                                                    value={changePassword}
+                                                    onChange={(e) => setChangePassword(e.target.value)}
+                                                    className="block w-full pl-11 pr-11 py-4 bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 rounded-2xl transition-all text-sm font-semibold text-slate-900"
+                                                    placeholder="Nueva contraseña"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowChangePassword(!showChangePassword)}
+                                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                                                >
+                                                    {showChangePassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Confirmar Nueva Contraseña</label>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                                                    <Lock size={16} />
+                                                </div>
+                                                <input
+                                                    required
+                                                    type={showConfirmChangePassword ? 'text' : 'password'}
+                                                    value={confirmChangePassword}
+                                                    onChange={(e) => setConfirmChangePassword(e.target.value)}
+                                                    className="block w-full pl-11 pr-11 py-4 bg-slate-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-0 rounded-2xl transition-all text-sm font-semibold text-slate-900"
+                                                    placeholder="Confirmar contraseña"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConfirmChangePassword(!showConfirmChangePassword)}
+                                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                                                >
+                                                    {showConfirmChangePassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {changePasswordError && (
+                                        <div className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-bold border border-red-100 animate-shake">
+                                            {changePasswordError}
+                                        </div>
+                                    )}
+
+                                    {changePasswordSuccess && (
+                                        <div className="p-4 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold border border-emerald-100">
+                                            {changePasswordSuccess}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        disabled={isChangingPassword}
+                                        className="bg-slate-900 hover:bg-emerald-600 text-white font-black px-6 py-4 rounded-2xl transition-all text-xs uppercase flex items-center gap-2 shadow-sm hover:shadow-xl hover:shadow-emerald-600/20 active:scale-95 disabled:opacity-50"
+                                    >
+                                        {isChangingPassword ? 'Guardando...' : 'Cambiar Contraseña'}
+                                    </button>
+                                </form>
                             </div>
 
                             {/* Botón de Salida */}
