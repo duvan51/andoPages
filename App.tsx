@@ -24,10 +24,11 @@ import WebsiteContent from './components/WebsiteContent';
 import { useTenant } from './hooks/useTenant';
 import { supabase } from './lib/supabase'; // Importación necesaria para el auto-login
 import CartDrawer from './components/shared/CartDrawer';
+import MobileCatalogWhatsApp from './components/MobileCatalogWhatsApp';
 
 const App: React.FC = () => {
   const { tenant, isMainDomain, isLoading: isTenantLoading, isError: isTenantError } = useTenant();
-  const [currentView, setCurrentView] = useState<'home' | 'services' | 'service-detail' | 'admin' | 'landing' | 'offers'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'services' | 'service-detail' | 'admin' | 'landing' | 'offers' | 'catalogo-movil-whatsapp'>('home');
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [landingSlug, setLandingSlug] = useState<string | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -54,6 +55,12 @@ const App: React.FC = () => {
       }
 
       // 2. Rutas basadas en el Pathname
+      const pathSegments = path.split('/').filter(Boolean);
+      if (pathSegments.includes('catalogo-movile-whatsap') || pathSegments.includes('catalogo-movil-whatsapp')) {
+        setCurrentView('catalogo-movil-whatsapp');
+        return;
+      }
+
       if (path === '/admin' || path === '/login') {
         setCurrentView('admin');
       } else if (path.startsWith('/landing/')) {
@@ -189,7 +196,7 @@ const App: React.FC = () => {
         }`}
       style={{ '--primary-color': tenant?.primary_color || '#10b981' } as React.CSSProperties}
     >
-      {(currentView !== 'admin' && currentView !== 'landing' && !(isMainDomain && currentView === 'home')) && (
+      {(currentView !== 'admin' && currentView !== 'landing' && currentView !== 'catalogo-movil-whatsapp' && !(isMainDomain && currentView === 'home')) && (
         <Header
           onHomeClick={handleBackToHome}
           onServicesClick={handleGoToServices}
@@ -204,6 +211,8 @@ const App: React.FC = () => {
           <AdminDashboard />
         ) : currentView === 'landing' && landingSlug ? (
           <LandingPage slug={landingSlug} />
+        ) : currentView === 'catalogo-movil-whatsapp' ? (
+          <MobileCatalogWhatsApp tenant={tenant} />
         ) : currentView === 'service-detail' && selectedServiceId ? (
           <ServiceLanding
             serviceId={selectedServiceId}
@@ -227,7 +236,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {currentView !== 'admin' && currentView !== 'landing' && !(isMainDomain && currentView === 'home') && (
+      {currentView !== 'admin' && currentView !== 'landing' && currentView !== 'catalogo-movil-whatsapp' && !(isMainDomain && currentView === 'home') && (
         <>
           <Footer />
           <WhatsAppButton />
@@ -239,7 +248,7 @@ const App: React.FC = () => {
         onClose={() => setIsBookingOpen(false)}
       />
 
-      <CartDrawer />
+      {currentView !== 'catalogo-movil-whatsapp' && <CartDrawer />}
     </div>
   );
 };

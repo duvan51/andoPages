@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import SectionHeader from '../shared/SectionHeader';
-import { Plus, Edit2, Trash2, ExternalLink, Globe, Layout, ChevronRight, Stethoscope, ShoppingBag, Briefcase, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, ExternalLink, Globe, Layout, ChevronRight, Stethoscope, ShoppingBag, Briefcase, X, MessageCircle, Copy, Check, Link2 } from 'lucide-react';
 import LandingEditor from './LandingEditor';
 import { LANDING_PRESETS } from '../../../constants/landingPresets';
 
@@ -14,12 +14,44 @@ const LandingsManager: React.FC<LandingsManagerProps> = ({ companyId }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [editingLanding, setEditingLanding] = useState<any>(null);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
+    const [company, setCompany] = useState<any>(null);
+    const [copiedStore, setCopiedStore] = useState(false);
+    const [copiedCatalog, setCopiedCatalog] = useState(false);
 
     useEffect(() => {
         if (companyId) {
             fetchLandings();
+            fetchCompany();
         }
     }, [companyId]);
+
+    const fetchCompany = async () => {
+        if (!companyId) return;
+        const { data } = await supabase.from('companies').select('slug, custom_domain, name').eq('id', companyId).maybeSingle();
+        if (data) setCompany(data);
+    };
+
+    const getBaseUrl = () => {
+        if (company?.custom_domain) return `https://${company.custom_domain}`;
+        return `https://desarrollandoando.fun/${company?.slug || ''}`;
+    };
+
+    const getCatalogUrl = () => `${getBaseUrl()}/catalogo-movile-whatsap`;
+
+    const copyToClipboard = async (text: string, type: 'store' | 'catalog') => {
+        try {
+            await navigator.clipboard.writeText(text);
+            if (type === 'store') {
+                setCopiedStore(true);
+                setTimeout(() => setCopiedStore(false), 2000);
+            } else {
+                setCopiedCatalog(true);
+                setTimeout(() => setCopiedCatalog(false), 2000);
+            }
+        } catch (e) {
+            console.error('Clipboard error:', e);
+        }
+    };
 
     const fetchLandings = async () => {
         if (!companyId) return;
@@ -79,6 +111,85 @@ const LandingsManager: React.FC<LandingsManagerProps> = ({ companyId }) => {
                     </button>
                 }
             />
+
+            {/* Quick Links Card: Tienda + Catálogo WhatsApp */}
+            {company && (
+                <div className="bg-gradient-to-br from-slate-900 to-[#075e54] rounded-[2rem] p-6 border border-[#128c7e]/30 shadow-xl">
+                    <div className="flex items-center gap-3 mb-5">
+                        <div className="bg-[#25d366]/20 p-2.5 rounded-2xl">
+                            <Link2 size={20} className="text-[#25d366]" />
+                        </div>
+                        <div>
+                            <h3 className="text-white font-black text-sm uppercase tracking-wider">Links de tu Tienda</h3>
+                            <p className="text-slate-400 text-xs font-semibold">Comparte estos links con tus clientes o en WhatsApp</p>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                        {/* Link Tienda Web */}
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Globe size={14} className="text-emerald-400" />
+                                <span className="text-emerald-400 font-black text-[10px] uppercase tracking-widest">Tienda Web</span>
+                            </div>
+                            <p className="text-slate-300 text-xs font-mono mb-3 truncate">{getBaseUrl()}</p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => copyToClipboard(getBaseUrl(), 'store')}
+                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                                        copiedStore
+                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                            : 'bg-white/10 text-slate-300 hover:bg-white/20 border border-white/10'
+                                    }`}
+                                >
+                                    {copiedStore ? <Check size={12} /> : <Copy size={12} />}
+                                    {copiedStore ? 'Copiado!' : 'Copiar'}
+                                </button>
+                                <a
+                                    href={getBaseUrl()}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white/10 text-slate-300 hover:bg-white/20 border border-white/10 transition-all"
+                                >
+                                    <ExternalLink size={12} />
+                                    Abrir
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Link Catálogo WhatsApp */}
+                        <div className="bg-[#25d366]/10 border border-[#25d366]/20 rounded-2xl p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <MessageCircle size={14} className="text-[#25d366]" />
+                                <span className="text-[#25d366] font-black text-[10px] uppercase tracking-widest">Catálogo WhatsApp In-App</span>
+                            </div>
+                            <p className="text-slate-300 text-xs font-mono mb-3 truncate">{getCatalogUrl()}</p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => copyToClipboard(getCatalogUrl(), 'catalog')}
+                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                                        copiedCatalog
+                                            ? 'bg-[#25d366]/30 text-[#25d366] border border-[#25d366]/40'
+                                            : 'bg-white/10 text-slate-300 hover:bg-white/20 border border-white/10'
+                                    }`}
+                                >
+                                    {copiedCatalog ? <Check size={12} /> : <Copy size={12} />}
+                                    {copiedCatalog ? 'Copiado!' : 'Copiar Link'}
+                                </button>
+                                <a
+                                    href={getCatalogUrl()}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-[#25d366]/20 text-[#25d366] hover:bg-[#25d366]/30 border border-[#25d366]/20 transition-all"
+                                >
+                                    <ExternalLink size={12} />
+                                    Abrir
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Template Selection Modal */}
             {showTemplateModal && (
