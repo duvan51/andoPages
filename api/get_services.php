@@ -6,9 +6,16 @@ require_once 'config.php';
  */
 
 try {
-    // Fetch treatments
-    $query = "SELECT * FROM treatments ORDER BY category, title";
-    $stmt = $conn->prepare($query);
+    $company_id = $_GET['companyId'] ?? $_GET['company_id'] ?? null;
+    
+    if ($company_id) {
+        $query = "SELECT * FROM treatments WHERE company_id = :company_id ORDER BY category, title";
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam(':company_id', $company_id);
+    } else {
+        $query = "SELECT * FROM treatments ORDER BY category, title";
+        $stmt = $conn->prepare($query);
+    }
     $stmt->execute();
     
     $treatments = $stmt->fetchAll(PDO::FETCH_ASSOC);

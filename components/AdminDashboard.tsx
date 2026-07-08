@@ -939,6 +939,59 @@ const AdminDashboard: React.FC = () => {
                                 </form>
                             </div>
 
+                            {/* Integración con andoticket */}
+                            <div className="space-y-6 pt-6 border-t border-slate-50">
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                                    <div className="w-1.5 h-6 bg-emerald-600 rounded-full"></div>
+                                    Conexión de Mensajería
+                                </h3>
+                                
+                                <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100">
+                                    <h4 className="font-black text-slate-900 mb-2">Conecta tu andoticket de mensajería con andoPages</h4>
+                                    <p className="text-slate-500 text-xs font-semibold mb-6">Sigue estos sencillos pasos para sincronizar tu catálogo de productos y compartirlos directamente desde tus chats:</p>
+                                    
+                                    <div className="space-y-4 text-xs font-semibold text-slate-600 mb-6">
+                                        <div className="flex gap-3">
+                                            <div className="w-5 h-5 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
+                                            <p>Copia el enlace de tu API de catálogo que se muestra a continuación.</p>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="w-5 h-5 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
+                                            <p>Abre la aplicación móvil <strong>Whaticket-móvil</strong> (o entra a los Ajustes en tu plataforma de mensajería).</p>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="w-5 h-5 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
+                                            <p>Busca la opción <strong>"Integración de Catálogo (andoPages)"</strong>.</p>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="w-5 h-5 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold flex-shrink-0">4</div>
+                                            <p>Pega el enlace y presiona <strong>Guardar Integración</strong>. ¡Listo! Ya podrás enviar productos con 1 solo toque.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Enlace de tu Catálogo (API)</label>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                readOnly
+                                                value={`https://desarrollandoando.fun/api/get_services.php?companyId=${currentCompanyId || ''}`} 
+                                                className="block w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(`https://desarrollandoando.fun/api/get_services.php?companyId=${currentCompanyId || ''}`);
+                                                    alert("Enlace copiado al portapapeles");
+                                                }}
+                                                className="bg-slate-900 hover:bg-emerald-600 text-white font-black px-6 rounded-xl text-xs uppercase transition-all flex-shrink-0"
+                                            >
+                                                Copiar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Botón de Salida */}
                             <div className="pt-10 flex justify-end">
                                 <button 
