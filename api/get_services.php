@@ -1,46 +1,65 @@
 <?php
-require_once 'config.php';
-
 /**
- * Endpoint to fetch all treatments and their benefits
+ * Dynamic Catalog API Proxy for andoPages (Supabase integration)
  */
 
-try {
-    $company_id = $_GET['companyId'] ?? $_GET['company_id'] ?? null;
-    
-    if ($company_id) {
-        $query = "SELECT * FROM treatments WHERE company_id = :company_id ORDER BY category, title";
-        $stmt = $conn->prepare($query);
-        $stmt->bindParam(':company_id', $company_id);
-    } else {
-        $query = "SELECT * FROM treatments ORDER BY category, title";
-        $stmt = $conn->prepare($query);
-    }
-    $stmt->execute();
-    
-    $treatments = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Fetch benefits for each treatment
-    foreach ($treatments as &$treatment) {
-        $treatment_id = $treatment['id'];
-        $benefit_query = "SELECT benefit FROM treatment_benefits WHERE treatment_id = :id";
-        $benefit_stmt = $conn->prepare($benefit_query);
-        $benefit_stmt->bindParam(':id', $treatment_id);
-        $benefit_stmt->execute();
-        
-        $benefits = $benefit_stmt->fetchAll(PDO::FETCH_COLUMN);
-        $treatment['benefits'] = $benefits;
-    }
-    
-    echo json_encode([
-        "status" => "success",
-        "data" => $treatments
-    ]);
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Content-Type: application/json; charset=UTF-8");
 
-} catch(PDOException $e) {
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+$supabaseUrl = "https://vcjyvquqgteqiemdnrul.supabase.co";
+$supabaseKey = "sb_publishable_l5VJBPLTlzstB9sMHaoJqw_vV07pibv";
+
+$company_id = $_GET['companyId'] ?? $_GET['company_id'] ?? null;
+
+if (!$company_id) {
     echo json_encode([
         "status" => "error",
-        "message" => "Database error: " . $e->getMessage()
+        "message" => "Parámetro companyId requerido."
+    ]);
+    exit();
+}
+
+try {
+    // Query treatments associated with the given company_id from Supabase
+    $url = $supabaseUrl . "/rest/v1/treatments?company_id=eq." . urlencode($company_id) . "&select=*";
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "apikey: " . $supabaseKey,
+        "Authorization: Bearer " . $supabaseKey,
+        "Content-Type: application/json"
+    ]);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode >= 200 && $httpCode < 300) {
+        $data = json_decode($response, true);
+        echo json_encode([
+            "status" => "success",
+            "data" => $data
+        ]);
+    } else {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Error al obtener datos del servidor de base de datos.",
+            "code" => $httpCode
+        ]);
+    }
+
+} catch (Exception $e) {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Server exception: " . $e->getMessage()
     ]);
 }
 ?>
