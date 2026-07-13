@@ -21,6 +21,7 @@ import {
 import MediaPicker from '../shared/MediaPicker';
 import BulkImportModal from '../shared/BulkImportModal';
 import QuickAddModal from '../shared/QuickAddModal';
+import RichTextEditor from '../../shared/RichTextEditor';
 
 interface ProductsManagerProps {
     companyId?: string;
@@ -526,7 +527,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5 col-span-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Descripción Corta</label>
-                                    <textarea value={editingProduct.description} onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none min-h-[160px] resize-y focus:ring-2 focus:ring-emerald-500/10 transition-all" placeholder="Describe brevemente el producto..." />
+                                    <RichTextEditor value={editingProduct.description || ''} onChange={val => setEditingProduct({ ...editingProduct, description: val })} placeholder="Describe brevemente el producto..." />
                                 </div>
                             </div>
 

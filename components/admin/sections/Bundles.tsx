@@ -17,6 +17,8 @@ import {
     X as CloseIcon
 } from 'lucide-react';
 import MediaPicker from '../shared/MediaPicker';
+import RichTextEditor from '../../shared/RichTextEditor';
+import { stripMarkdown } from '../../shared/MarkdownRenderer';
 
 interface BundlesManagerProps {
     companyId?: string;
@@ -140,7 +142,7 @@ const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
                             <div className="space-y-4">
                                 <div>
                                     <h3 className="text-2xl font-black text-slate-900 leading-tight">{b.title}</h3>
-                                    <p className="text-sm font-semibold text-slate-500 mt-2 line-clamp-2">{b.description}</p>
+                                    <p className="text-sm font-semibold text-slate-500 mt-2 line-clamp-2">{stripMarkdown(b.description)}</p>
                                 </div>
 
                                 <div className="flex items-center gap-4 pt-4 border-t border-slate-50">
@@ -217,7 +219,7 @@ const BundlesManager: React.FC<BundlesManagerProps> = ({ companyId }) => {
 
                             <div className="space-y-2">
                                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Descripción</label>
-                                <textarea value={editingBundle.description} onChange={e => setEditingBundle({ ...editingBundle, description: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none min-h-[160px] resize-y" placeholder="¿Qué incluye este paquete?" />
+                                <RichTextEditor value={editingBundle.description || ''} onChange={val => setEditingBundle({ ...editingBundle, description: val })} placeholder="¿Qué incluye este paquete?" />
                             </div>
 
                             <div className="space-y-3 pt-4 border-t border-slate-50">

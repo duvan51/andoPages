@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { TREATMENTS } from '../constants/treatments';
 import { formatPriceCOP } from '../utils/format';
+import { stripMarkdown } from './shared/MarkdownRenderer';
 
 interface TreatmentsListPageProps {
     onServiceSelect: (id: string) => void;
@@ -102,7 +103,7 @@ const TreatmentsListPage: React.FC<TreatmentsListPageProps> = ({ onServiceSelect
                                 </div>
 
                                 <p className="text-slate-500 text-xs leading-relaxed mb-6 flex-grow line-clamp-3">
-                                    {treatment.description}
+                                    {stripMarkdown(treatment.description)}
                                 </p>
 
                                 {treatment.packagePrice && (

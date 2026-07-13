@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { formatPriceCOP } from '../utils/format';
+import MarkdownRenderer from './shared/MarkdownRenderer';
 import { 
   Search, 
   Filter, 
@@ -496,15 +497,13 @@ export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
               {/* Precio y Categoria */}
               <div className="flex justify-between items-baseline mb-4">
                 <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">{selectedProduct.category || 'General'}</span>
-                <span className="text-[#128c7e] font-black text-xl">
-                  {formatPriceCOP(selectedProduct.price)}
-                </span>
+                <span className="text-[#128c7e] font-black text-xl">{formatPriceCOP(selectedProduct.price)}</span>
               </div>
 
               {selectedProduct.description && (
                 <div className="mb-4">
                   <h4 className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">Descripción</h4>
-                  <p className="text-slate-600 text-xs leading-relaxed">{selectedProduct.description}</p>
+                  <MarkdownRenderer content={selectedProduct.description} className="text-slate-600 text-xs leading-relaxed" />
                 </div>
               )}
 
@@ -579,7 +578,8 @@ export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
             </div>
           </div>
         </div>
-      )}
+
+    )}
 
       {/* --- DRAWER DEL CARRITO DE COMPRAS --- */}
       {isCartOpen && (

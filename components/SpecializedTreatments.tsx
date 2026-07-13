@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useTenant } from '../hooks/useTenant';
 import { MOCK_SERVICES } from '../constants/mockData';
 import OptimizedImage from './shared/OptimizedImage';
+import { stripMarkdown } from './shared/MarkdownRenderer';
 
 interface Treatment {
   id: string;
@@ -85,7 +86,7 @@ const SpecializedTreatments: React.FC<SpecializedTreatmentsProps> = ({ onService
               {t.title}
             </h4>
             <p className="text-slate-500 leading-relaxed text-sm line-clamp-3 mb-4 flex-grow">
-              {t.description || 'Consulta los detalles de este tratamiento avanzado.'}
+              {stripMarkdown(t.description) || 'Consulta los detalles de este tratamiento avanzado.'}
             </p>
             <span className="text-emerald-600 text-xs font-bold hover:underline flex items-center gap-1">
               Ver más

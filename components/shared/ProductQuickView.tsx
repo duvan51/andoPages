@@ -6,6 +6,7 @@ import { useTenant } from '../../hooks/useTenant';
 import { formatPriceCOP } from '../../utils/format';
 import { getWhatsAppLeadUrl } from '../../utils/whatsapp';
 import OptimizedImage from './OptimizedImage';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface ProductQuickViewProps {
   product: any;
@@ -144,9 +145,7 @@ const ProductQuickView: React.FC<ProductQuickViewProps> = ({ product, isOpen, on
           </h2>
 
           <div className="mb-8">
-            <p className="text-slate-500 text-sm md:text-base leading-relaxed">
-              {product.description || 'Prenda exclusiva diseñada con los más altos estándares de calidad y estilo para la mujer moderna.'}
-            </p>
+            <MarkdownRenderer content={product.description || 'Prenda exclusiva diseñada con los más altos estándares de calidad y estilo para la mujer moderna.'} className="text-slate-500 text-sm md:text-base leading-relaxed" />
           </div>
 
           <div className="mt-auto">

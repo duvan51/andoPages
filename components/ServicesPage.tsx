@@ -9,6 +9,7 @@ import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import OptimizedImage from './shared/OptimizedImage';
 import ProductQuickView from './shared/ProductQuickView';
+import { stripMarkdown } from './shared/MarkdownRenderer';
 
 interface ServicesPageProps {
     onServiceSelect: (id: string) => void;
@@ -178,7 +179,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onBack }) 
                                 </div>
 
                                 <p className="text-slate-500 text-xs leading-relaxed mb-6 flex-grow line-clamp-3">
-                                    {treatment.description}
+                                    {stripMarkdown(treatment.description)}
                                 </p>
 
                                 <div className="pt-4 border-t border-slate-50 mt-auto">

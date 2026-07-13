@@ -11,6 +11,7 @@ import BundleCard, { BundleModal } from './shared/BundleCard';
 import { X, ChevronLeft, ChevronRight, Play, Gift, Share2, Check, ShoppingBag } from 'lucide-react';
 import { useTenant } from '../hooks/useTenant';
 import { useCart } from '../context/CartContext';
+import MarkdownRenderer from './shared/MarkdownRenderer';
 
 interface GalleryLightboxProps {
   media: { url: string; type: 'image' | 'video' }[];
@@ -275,9 +276,7 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
               <h1 className="text-4xl md:text-6xl font-serif mb-8 leading-tight">
                 {service.title}
               </h1>
-              <p className={`text-lg md:text-xl ${isFashion ? 'text-slate-300' : 'text-emerald-100/80'} leading-relaxed mb-4`}>
-                {service.description || service.heroDescription}
-              </p>
+              <MarkdownRenderer content={service.description || service.heroDescription} className={`text-lg md:text-xl ${isFashion ? 'text-slate-300' : 'text-emerald-100/80'} leading-relaxed mb-4`} />
               {service.price && (
                 <p className={`text-3xl font-bold ${isFashion ? 'text-white' : 'text-emerald-400'} mb-10 flex items-center gap-2`}>
                   {formatPriceCOP(service.price)}
@@ -614,7 +613,7 @@ const ServiceLanding: React.FC<ServiceLandingProps> = ({ serviceId, onBack, onGo
                     </div>
                   </div>
                   <h4 className="text-xl font-bold text-slate-900 mb-2">{sup.title}</h4>
-                  <p className="text-sm text-slate-500 mb-6 leading-relaxed flex-grow">{sup.description}</p>
+                  <MarkdownRenderer content={sup.description} className="text-sm text-slate-500 mb-6 leading-relaxed flex-grow" />
                   <div className="pt-4 border-t border-slate-50 w-full mt-auto">
                     <p className={`font-bold text-lg mb-4 ${isFashion ? 'text-slate-900' : 'text-emerald-700'}`}>{formatPriceCOP(sup.price)}</p>
                     <a
