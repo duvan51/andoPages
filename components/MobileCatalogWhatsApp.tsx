@@ -398,7 +398,7 @@ export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
       {totalItems > 0 && (
         <button
           onClick={() => setIsCartOpen(true)}
-          className="absolute bottom-6 right-6 bg-[#25d366] hover:bg-[#20ba5a] text-white p-4 rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-transform z-35 animate-bounce"
+          className="fixed bottom-6 right-6 md:right-[calc(50%-200px)] bg-[#25d366] hover:bg-[#20ba5a] text-white p-4 rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-transform z-35 animate-bounce"
         >
           <div className="relative">
             <ShoppingCart size={24} />
