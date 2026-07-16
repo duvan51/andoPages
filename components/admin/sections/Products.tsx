@@ -16,12 +16,14 @@ import {
     Image as ImageIcon,
     Upload,
     X as CloseIcon,
-    AlertTriangle
+    AlertTriangle,
+    Sparkles
 } from 'lucide-react';
 import MediaPicker from '../shared/MediaPicker';
 import BulkImportModal from '../shared/BulkImportModal';
 import QuickAddModal from '../shared/QuickAddModal';
 import RichTextEditor from '../../shared/RichTextEditor';
+import AIAssistantModal from '../shared/AIAssistantModal';
 
 interface ProductsManagerProps {
     companyId?: string;
@@ -47,6 +49,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
     const [newTagName, setNewTagName] = useState('');
     const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
     const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
+    const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
 
     useEffect(() => {
         if (companyId) {
@@ -219,6 +222,13 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                         >
                             <Upload size={20} />
                             Carga Masiva
+                        </button>
+                        <button
+                            onClick={() => setIsAIAssistantOpen(true)}
+                            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg transition-all"
+                        >
+                            <Sparkles size={20} className="animate-pulse" />
+                            Asistente IA
                         </button>
                         <button
                             onClick={() => setIsQuickAddModalOpen(true)}
@@ -995,6 +1005,14 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
             <QuickAddModal 
                 isOpen={isQuickAddModalOpen}
                 onClose={() => setIsQuickAddModalOpen(false)}
+                onSuccess={fetchProducts}
+                companyId={companyId || ''}
+                categories={categories}
+            />
+            {/* AI Assistant Modal */}
+            <AIAssistantModal
+                isOpen={isAIAssistantOpen}
+                onClose={() => setIsAIAssistantOpen(false)}
                 onSuccess={fetchProducts}
                 companyId={companyId || ''}
                 categories={categories}
