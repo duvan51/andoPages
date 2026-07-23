@@ -58,8 +58,9 @@ const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
 
   // Configuración de API Key local
   const [showSettings, setShowSettings] = useState(false);
-  const [tempProvider, setTempProvider] = useState<'gemini' | 'openai'>('gemini');
+  const [tempProvider, setTempProvider] = useState<'gemini' | 'openai' | 'openrouter'>('gemini');
   const [tempApiKey, setTempApiKey] = useState('');
+  const [tempModel, setTempModel] = useState('google/gemini-2.5-flash');
 
   // Cargar configuración inicial al abrir el modal
   useEffect(() => {
@@ -67,6 +68,7 @@ const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
       const config = getAIConfig();
       setTempProvider(config.provider);
       setTempApiKey(config.apiKey);
+      setTempModel(config.model || 'google/gemini-2.5-flash');
     }
   }, [isOpen]);
 
@@ -360,7 +362,7 @@ const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
             <div className="absolute top-22 right-10 bg-white border border-slate-150 rounded-3xl shadow-2xl p-6 z-[650] w-80 animate-fade-in">
               <h3 className="text-sm font-black text-slate-800 mb-3 uppercase tracking-wider">Configurar IA Personal</h3>
               <p className="text-[10px] text-slate-400 font-semibold mb-4 leading-relaxed">
-                Guarda tu propia clave de API en este navegador para usar tu cuenta de Gemini u OpenAI.
+                Guarda tu propia clave de API en este navegador para usar tu cuenta de Gemini, OpenAI u OpenRouter.
               </p>
               
               <div className="space-y-3">
@@ -368,15 +370,35 @@ const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Proveedor de IA</label>
                   <select 
                     value={tempProvider} 
-                    onChange={e => setTempProvider(e.target.value as 'gemini' | 'openai')}
+                    onChange={e => setTempProvider(e.target.value as 'gemini' | 'openai' | 'openrouter')}
                     className="w-full bg-slate-50 border-none rounded-xl p-2.5 text-xs font-bold outline-none"
                   >
                     <option value="gemini">Google Gemini (Recomendado)</option>
                     <option value="openai">OpenAI (GPT-4o-mini)</option>
+                    <option value="openrouter">OpenRouter API</option>
                   </select>
                 </div>
+                
+                {tempProvider === 'openrouter' && (
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Modelo de OpenRouter</label>
+                    <input 
+                      type="text"
+                      placeholder="Ej: google/gemini-2.5-flash"
+                      value={tempModel}
+                      onChange={e => setTempModel(e.target.value)}
+                      className="w-full bg-slate-50 border-none rounded-xl p-2.5 text-xs font-bold outline-none"
+                    />
+                    <p className="text-[8px] text-slate-400 font-medium leading-normal mt-0.5">
+                      Modelos sugeridos: <code className="bg-slate-100 px-1 rounded">google/gemini-2.5-flash</code> o <code className="bg-slate-100 px-1 rounded">meta-llama/llama-3.3-70b-instruct</code>.
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">API Key de {tempProvider === 'gemini' ? 'Gemini' : 'OpenAI'}</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    API Key de {tempProvider === 'gemini' ? 'Gemini' : tempProvider === 'openai' ? 'OpenAI' : 'OpenRouter'}
+                  </label>
                   <input 
                     type="password"
                     placeholder="Introduce tu clave API..."
@@ -388,7 +410,7 @@ const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    saveAIConfig(tempProvider, tempApiKey);
+                    saveAIConfig(tempProvider, tempApiKey, tempProvider === 'openrouter' ? tempModel : undefined);
                     setShowSettings(false);
                     alert('Configuración guardada correctamente.');
                   }}
