@@ -36,6 +36,8 @@ interface Product {
   category?: string;
   active: boolean;
   sku?: string;
+  pauta_price?: number;
+  is_pauta?: boolean;
 }
 
 interface CartItem {
@@ -80,7 +82,7 @@ const getColorHex = (colorName?: string) => {
   return colors[name] || '#cbd5e1';
 };
 
-export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
+export default function MobileCatalogWhatsApp({ tenant, isPauta = false }: { tenant: any, isPauta?: boolean }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,12 +106,17 @@ export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
     if (!tenant?.id) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('treatments')
         .select('*')
         .eq('company_id', tenant.id)
-        .eq('active', true)
-        .order('created_at', { ascending: false });
+        .eq('active', true);
+
+      if (isPauta) {
+        query = query.eq('is_pauta', true);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (data) {
         setProducts(data);
@@ -177,7 +184,8 @@ export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => {
-    const price = typeof item.product.price === 'string' ? parseFloat(item.product.price.replace(/[^\d]/g, '')) : item.product.price;
+    const rawPrice = isPauta && item.product.pauta_price && item.product.pauta_price > 0 ? item.product.pauta_price : item.product.price;
+    const price = typeof rawPrice === 'string' ? parseFloat(rawPrice.replace(/[^\d]/g, '')) : rawPrice;
     return sum + (price * item.quantity);
   }, 0);
 
@@ -196,9 +204,10 @@ export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
     let message = `*¡Hola! Me interesa realizar este pedido desde el catálogo:* \n\n`;
     
     cart.forEach(item => {
-      const priceVal = typeof item.product.price === 'string' 
-        ? parseFloat(item.product.price.replace(/[^\d]/g, '')) 
-        : item.product.price;
+      const rawPrice = isPauta && item.product.pauta_price && item.product.pauta_price > 0 ? item.product.pauta_price : item.product.price;
+      const priceVal = typeof rawPrice === 'string' 
+        ? parseFloat(rawPrice.replace(/[^\d]/g, '')) 
+        : rawPrice;
       
       const variantDesc = (item.selectedSize || item.selectedColor) 
         ? `(${[item.selectedSize, item.selectedColor].filter(Boolean).join(' / ')})` 
@@ -251,7 +260,9 @@ export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
         <div className="flex items-center gap-2">
           <div className="bg-[#25d366]/20 px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-[#25d366]/30">
             <MessageCircle size={14} className="text-[#25d366]" />
-            <span className="text-[10px] text-[#25d366] font-extrabold uppercase">WhatsApp In-App</span>
+            <span className="text-[10px] text-[#25d366] font-extrabold uppercase">
+              {isPauta ? 'WhatsApp Pauta' : 'WhatsApp In-App'}
+            </span>
           </div>
         </div>
       </header>
@@ -334,7 +345,8 @@ export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
         ) : (
           <div className="grid grid-cols-2 gap-4">
             {filteredProducts.map((p) => {
-              const price = typeof p.price === 'string' ? parseFloat(p.price.replace(/[^\d]/g, '')) : p.price;
+              const rawPrice = isPauta && p.pauta_price && p.pauta_price > 0 ? p.pauta_price : p.price;
+              const price = typeof rawPrice === 'string' ? parseFloat(rawPrice.replace(/[^\d]/g, '')) : rawPrice;
               const hasVariants = p.variants && p.variants.length > 0;
               
               return (
@@ -497,7 +509,9 @@ export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
               {/* Precio y Categoria */}
               <div className="flex justify-between items-baseline mb-4">
                 <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">{selectedProduct.category || 'General'}</span>
-                <span className="text-[#128c7e] font-black text-xl">{formatPriceCOP(selectedProduct.price)}</span>
+                <span className="text-[#128c7e] font-black text-xl">
+                  {formatPriceCOP(isPauta && selectedProduct.pauta_price && selectedProduct.pauta_price > 0 ? selectedProduct.pauta_price : selectedProduct.price)}
+                </span>
               </div>
 
               {selectedProduct.description && (
@@ -603,9 +617,10 @@ export default function MobileCatalogWhatsApp({ tenant }: { tenant: any }) {
             {/* List */}
             <div className="overflow-y-auto flex-1 p-5">
               {cart.map((item, idx) => {
-                const itemPrice = typeof item.product.price === 'string' 
-                  ? parseFloat(item.product.price.replace(/[^\d]/g, '')) 
-                  : item.product.price;
+                const rawPrice = isPauta && item.product.pauta_price && item.product.pauta_price > 0 ? item.product.pauta_price : item.product.price;
+                const itemPrice = typeof rawPrice === 'string' 
+                  ? parseFloat(rawPrice.replace(/[^\d]/g, '')) 
+                  : rawPrice;
                 
                 return (
                   <div key={idx} className="flex gap-3 py-3 border-b border-slate-100 last:border-b-0">

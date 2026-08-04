@@ -6,6 +6,7 @@ export interface GeminiProductResponse {
   category: string;
   price: number;
   cost_price?: number;
+  pauta_price?: number;
   sku?: string;
   product_type: 'product' | 'service';
   variants?: {
@@ -114,8 +115,9 @@ async function analyzeWithGemini(
       title: { type: 'STRING', description: 'Nombre recomendado para el producto, claro y comercial.' },
       description: { type: 'STRING', description: 'Descripción comercial en formato Markdown del producto.' },
       category: { type: 'STRING', description: 'Categoría sugerida (ej: Ropa, Calzado, Tecnología).' },
-      price: { type: 'NUMBER', description: 'Precio de venta recomendado.' },
+      price: { type: 'STRING', description: 'Precio de venta recomendado.' },
       cost_price: { type: 'NUMBER', description: 'Precio de costo del producto.' },
+      pauta_price: { type: 'NUMBER', description: 'Precio de venta pauta (publicidad/promoción) recomendado.' },
       sku: { type: 'STRING', description: 'Código SKU sugerido.' },
       product_type: { type: 'STRING', enum: ['product', 'service'], description: 'Tipo de ítem (product o service).' },
       variants: {
@@ -263,6 +265,7 @@ Debes responder estructuradamente de acuerdo al esquema JSON indicado. En la pro
         category: { type: 'string' },
         price: { type: 'number' },
         cost_price: { type: 'number' },
+        pauta_price: { type: 'number' },
         sku: { type: 'string' },
         product_type: { type: 'string', enum: ['product', 'service'] },
         variants: {
@@ -302,6 +305,7 @@ Debes responder estructuradamente de acuerdo al esquema JSON indicado. En la pro
         'category',
         'price',
         'cost_price',
+        'pauta_price',
         'sku',
         'product_type',
         'variants',
@@ -419,6 +423,7 @@ Debes responder estructuradamente de acuerdo al esquema JSON indicado. En la pro
         category: { type: 'string' },
         price: { type: 'number' },
         cost_price: { type: 'number' },
+        pauta_price: { type: 'number' },
         sku: { type: 'string' },
         product_type: { type: 'string', enum: ['product', 'service'] },
         variants: {
@@ -458,6 +463,7 @@ Debes responder estructuradamente de acuerdo al esquema JSON indicado. En la pro
         'category',
         'price',
         'cost_price',
+        'pauta_price',
         'sku',
         'product_type',
         'variants',

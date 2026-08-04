@@ -46,9 +46,13 @@ CREATE TABLE IF NOT EXISTS treatments (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     category TEXT,
-    active BOOLEAN DEFAULT TRUE,
+    price TEXT,
+    cost_price NUMERIC DEFAULT 0,
+    pauta_price NUMERIC DEFAULT 0,
     "imageUrl" TEXT,
     secondary_images TEXT[] DEFAULT '{}',
+    active BOOLEAN DEFAULT TRUE,
+    is_pauta BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

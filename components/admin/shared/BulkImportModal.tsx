@@ -42,6 +42,7 @@ const BulkImportModal: React.FC<BulkImportModalProps> = ({ isOpen, onClose, onSu
                 const normalized = json.map(row => ({
                     title: row.Nombre || row.nombre || row.Title || row.title || '',
                     price: parseFloat(row.Precio || row.precio || row.Price || row.price || '0'),
+                    pauta_price: parseFloat(row.Pauta || row.pauta || row.PrecioPauta || row.precio_pauta || row['Precio Pauta'] || row['precio pauta'] || '0'),
                     category: row.Categoria || row.categoria || row.Category || row.category || '',
                     description: row.Descripcion || row.descripcion || row.Description || row.description || '',
                     imageUrl: row.Imagen || row.imagen || row.Image || row.image || '',
@@ -70,6 +71,7 @@ const BulkImportModal: React.FC<BulkImportModalProps> = ({ isOpen, onClose, onSu
                         company_id: companyId,
                         title: item.title,
                         price: item.price,
+                        pauta_price: item.pauta_price || 0,
                         category: item.category || categories[0]?.name || 'General',
                         description: item.description,
                         imageUrl: item.imageUrl,
@@ -179,6 +181,7 @@ const BulkImportModal: React.FC<BulkImportModalProps> = ({ isOpen, onClose, onSu
                                                 <th className="p-4 font-black text-slate-500 uppercase text-[10px]">Nombre</th>
                                                 <th className="p-4 font-black text-slate-500 uppercase text-[10px]">Categoría</th>
                                                 <th className="p-4 font-black text-slate-500 uppercase text-[10px]">Precio</th>
+                                                <th className="p-4 font-black text-slate-500 uppercase text-[10px]">Precio Pauta</th>
                                                 <th className="p-4 font-black text-slate-500 uppercase text-[10px]">Descripción</th>
                                             </tr>
                                         </thead>
@@ -188,6 +191,7 @@ const BulkImportModal: React.FC<BulkImportModalProps> = ({ isOpen, onClose, onSu
                                                     <td className="p-4 font-bold text-slate-900">{row.title}</td>
                                                     <td className="p-4 font-semibold text-emerald-600">{row.category}</td>
                                                     <td className="p-4 font-black font-mono">${row.price.toLocaleString()}</td>
+                                                    <td className="p-4 font-black font-mono">${(row.pauta_price || 0).toLocaleString()}</td>
                                                     <td className="p-4 text-slate-500 truncate max-w-[200px]">{row.description}</td>
                                                 </tr>
                                             ))}

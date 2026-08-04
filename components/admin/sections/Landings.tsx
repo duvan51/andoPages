@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import SectionHeader from '../shared/SectionHeader';
-import { Plus, Edit2, Trash2, ExternalLink, Globe, Layout, ChevronRight, Stethoscope, ShoppingBag, Briefcase, X, MessageCircle, Copy, Check, Link2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, ExternalLink, Globe, Layout, ChevronRight, Stethoscope, ShoppingBag, Briefcase, X, MessageCircle, Copy, Check, Link2, Sparkles } from 'lucide-react';
 import LandingEditor from './LandingEditor';
 import { LANDING_PRESETS } from '../../../constants/landingPresets';
 
@@ -17,6 +17,7 @@ const LandingsManager: React.FC<LandingsManagerProps> = ({ companyId }) => {
     const [company, setCompany] = useState<any>(null);
     const [copiedStore, setCopiedStore] = useState(false);
     const [copiedCatalog, setCopiedCatalog] = useState(false);
+    const [copiedCatalogPauta, setCopiedCatalogPauta] = useState(false);
 
     useEffect(() => {
         if (companyId) {
@@ -37,16 +38,20 @@ const LandingsManager: React.FC<LandingsManagerProps> = ({ companyId }) => {
     };
 
     const getCatalogUrl = () => `${getBaseUrl()}/catalogo-movile-whatsap`;
+    const getCatalogPautaUrl = () => `${getBaseUrl()}/catalogo-movile-pauta`;
 
-    const copyToClipboard = async (text: string, type: 'store' | 'catalog') => {
+    const copyToClipboard = async (text: string, type: 'store' | 'catalog' | 'pauta') => {
         try {
             await navigator.clipboard.writeText(text);
             if (type === 'store') {
                 setCopiedStore(true);
                 setTimeout(() => setCopiedStore(false), 2000);
-            } else {
+            } else if (type === 'catalog') {
                 setCopiedCatalog(true);
                 setTimeout(() => setCopiedCatalog(false), 2000);
+            } else {
+                setCopiedCatalogPauta(true);
+                setTimeout(() => setCopiedCatalogPauta(false), 2000);
             }
         } catch (e) {
             console.error('Clipboard error:', e);
@@ -125,7 +130,7 @@ const LandingsManager: React.FC<LandingsManagerProps> = ({ companyId }) => {
                         </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-3 gap-4">
                         {/* Link Tienda Web */}
                         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
                             <div className="flex items-center gap-2 mb-2">
@@ -181,6 +186,37 @@ const LandingsManager: React.FC<LandingsManagerProps> = ({ companyId }) => {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-[#25d366]/20 text-[#25d366] hover:bg-[#25d366]/30 border border-[#25d366]/20 transition-all"
+                                >
+                                    <ExternalLink size={12} />
+                                    Abrir
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Link Catálogo Pauta */}
+                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Sparkles size={14} className="text-blue-400" />
+                                <span className="text-blue-400 font-black text-[10px] uppercase tracking-widest">Catálogo Pauta In-App</span>
+                            </div>
+                            <p className="text-slate-300 text-xs font-mono mb-3 truncate">{getCatalogPautaUrl()}</p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => copyToClipboard(getCatalogPautaUrl(), 'pauta')}
+                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                                        copiedCatalogPauta
+                                            ? 'bg-blue-500/30 text-blue-400 border border-blue-500/40'
+                                            : 'bg-white/10 text-slate-300 hover:bg-white/20 border border-white/10'
+                                    }`}
+                                >
+                                    {copiedCatalogPauta ? <Check size={12} /> : <Copy size={12} />}
+                                    {copiedCatalogPauta ? 'Copiado!' : 'Copiar Link'}
+                                </button>
+                                <a
+                                    href={getCatalogPautaUrl()}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/20 transition-all"
                                 >
                                     <ExternalLink size={12} />
                                     Abrir

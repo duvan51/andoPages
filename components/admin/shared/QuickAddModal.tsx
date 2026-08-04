@@ -12,7 +12,7 @@ interface QuickAddModalProps {
 }
 
 const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onSuccess, companyId, categories }) => {
-    const defaultRow = { title: '', price: '', category: categories[0]?.name || '', description: '', imageUrl: '' };
+    const defaultRow = { title: '', price: '', pauta_price: '', category: categories[0]?.name || '', description: '', imageUrl: '' };
     const [rows, setRows] = useState<any[]>([{ ...defaultRow }]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -49,6 +49,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onSucces
                         company_id: companyId,
                         title: item.title,
                         price: parseFloat(item.price) || 0,
+                        pauta_price: parseFloat(item.pauta_price) || 0,
                         category: item.category || categories[0]?.name || 'General',
                         description: item.description,
                         imageUrl: item.imageUrl,
@@ -94,7 +95,8 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onSucces
                                 <th className="p-4 font-black text-slate-500 uppercase text-[10px] tracking-widest">Nombre del Producto*</th>
                                 <th className="p-4 font-black text-slate-500 uppercase text-[10px] tracking-widest">Imagen</th>
                                 <th className="p-4 font-black text-slate-500 uppercase text-[10px] tracking-widest">Categoría</th>
-                                <th className="p-4 font-black text-slate-500 uppercase text-[10px] tracking-widest w-40">Precio</th>
+                                <th className="p-4 font-black text-slate-500 uppercase text-[10px] tracking-widest w-32">Precio</th>
+                                <th className="p-4 font-black text-slate-500 uppercase text-[10px] tracking-widest w-32">Precio Pauta</th>
                                 <th className="p-4 font-black text-slate-500 uppercase text-[10px] tracking-widest">Descripción</th>
                                 <th className="p-4 w-12"></th>
                             </tr>
@@ -142,6 +144,18 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onSucces
                                                 type="number"
                                                 value={row.price}
                                                 onChange={(e) => updateRow(index, 'price', e.target.value)}
+                                                placeholder="0.00"
+                                                className="w-full bg-transparent border-none focus:ring-2 focus:ring-emerald-500/20 rounded-xl pl-6 p-2 text-sm font-black outline-none"
+                                            />
+                                        </div>
+                                    </td>
+                                    <td className="p-2">
+                                        <div className="relative">
+                                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                                            <input 
+                                                type="number"
+                                                value={row.pauta_price}
+                                                onChange={(e) => updateRow(index, 'pauta_price', e.target.value)}
                                                 placeholder="0.00"
                                                 className="w-full bg-transparent border-none focus:ring-2 focus:ring-emerald-500/20 rounded-xl pl-6 p-2 text-sm font-black outline-none"
                                             />

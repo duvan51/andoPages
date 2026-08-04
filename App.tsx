@@ -28,7 +28,7 @@ import MobileCatalogWhatsApp from './components/MobileCatalogWhatsApp';
 
 const App: React.FC = () => {
   const { tenant, isMainDomain, isLoading: isTenantLoading, isError: isTenantError } = useTenant();
-  const [currentView, setCurrentView] = useState<'home' | 'services' | 'service-detail' | 'admin' | 'landing' | 'offers' | 'catalogo-movil-whatsapp'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'services' | 'service-detail' | 'admin' | 'landing' | 'offers' | 'catalogo-movil-whatsapp' | 'catalogo-movil-pauta'>('home');
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [landingSlug, setLandingSlug] = useState<string | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -58,6 +58,11 @@ const App: React.FC = () => {
       const pathSegments = path.split('/').filter(Boolean);
       if (pathSegments.includes('catalogo-movile-whatsap') || pathSegments.includes('catalogo-movil-whatsapp')) {
         setCurrentView('catalogo-movil-whatsapp');
+        return;
+      }
+
+      if (pathSegments.includes('catalogo-movile-pauta') || pathSegments.includes('catalogo-movil-pauta')) {
+        setCurrentView('catalogo-movil-pauta');
         return;
       }
 
@@ -196,7 +201,7 @@ const App: React.FC = () => {
         }`}
       style={{ '--primary-color': tenant?.primary_color || '#10b981' } as React.CSSProperties}
     >
-      {(currentView !== 'admin' && currentView !== 'landing' && currentView !== 'catalogo-movil-whatsapp' && !(isMainDomain && currentView === 'home')) && (
+      {(currentView !== 'admin' && currentView !== 'landing' && currentView !== 'catalogo-movil-whatsapp' && currentView !== 'catalogo-movil-pauta' && !(isMainDomain && currentView === 'home')) && (
         <Header
           onHomeClick={handleBackToHome}
           onServicesClick={handleGoToServices}
@@ -213,6 +218,8 @@ const App: React.FC = () => {
           <LandingPage slug={landingSlug} />
         ) : currentView === 'catalogo-movil-whatsapp' ? (
           <MobileCatalogWhatsApp tenant={tenant} />
+        ) : currentView === 'catalogo-movil-pauta' ? (
+          <MobileCatalogWhatsApp tenant={tenant} isPauta={true} />
         ) : currentView === 'service-detail' && selectedServiceId ? (
           <ServiceLanding
             serviceId={selectedServiceId}
@@ -236,7 +243,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {currentView !== 'admin' && currentView !== 'landing' && currentView !== 'catalogo-movil-whatsapp' && !(isMainDomain && currentView === 'home') && (
+      {currentView !== 'admin' && currentView !== 'landing' && currentView !== 'catalogo-movil-whatsapp' && currentView !== 'catalogo-movil-pauta' && !(isMainDomain && currentView === 'home') && (
         <>
           <Footer />
           <WhatsAppButton />
@@ -248,7 +255,7 @@ const App: React.FC = () => {
         onClose={() => setIsBookingOpen(false)}
       />
 
-      {currentView !== 'catalogo-movil-whatsapp' && <CartDrawer />}
+      {(currentView !== 'catalogo-movil-whatsapp' && currentView !== 'catalogo-movil-pauta') && <CartDrawer />}
     </div>
   );
 };

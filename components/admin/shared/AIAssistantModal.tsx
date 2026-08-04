@@ -253,6 +253,7 @@ const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
           category: draftProduct.category || categories[0]?.name || 'General',
           price: draftProduct.price || 0,
           cost_price: draftProduct.cost_price || 0,
+          pauta_price: draftProduct.pauta_price || 0,
           sku: draftProduct.sku || '',
           product_type: draftProduct.product_type || 'product',
           active: true,
@@ -578,7 +579,7 @@ const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="space-y-1">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Precio de Venta</label>
                     <div className="relative">
@@ -599,6 +600,18 @@ const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                         type="number" 
                         value={draftProduct.cost_price || 0} 
                         onChange={e => setDraftProduct({ ...draftProduct, cost_price: parseFloat(e.target.value) || 0 })}
+                        className="w-full bg-white border border-slate-100 rounded-xl pl-8 p-3 text-xs font-bold text-slate-800 outline-none focus:border-emerald-500" 
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Precio Pauta</label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
+                      <input 
+                        type="number" 
+                        value={draftProduct.pauta_price || 0} 
+                        onChange={e => setDraftProduct({ ...draftProduct, pauta_price: parseFloat(e.target.value) || 0 })}
                         className="w-full bg-white border border-slate-100 rounded-xl pl-8 p-3 text-xs font-bold text-slate-800 outline-none focus:border-emerald-500" 
                       />
                     </div>

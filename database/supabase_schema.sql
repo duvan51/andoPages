@@ -12,9 +12,12 @@ CREATE TABLE IF NOT EXISTS treatments (
     "imageUrl" TEXT,
     secondary_images TEXT[] DEFAULT '{}',
     price TEXT,
+    cost_price NUMERIC DEFAULT 0,
+    pauta_price NUMERIC DEFAULT 0,
     "packagePrice" TEXT,
     discount TEXT DEFAULT NULL,
     active BOOLEAN DEFAULT TRUE,
+    is_pauta BOOLEAN DEFAULT FALSE,
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );

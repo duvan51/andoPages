@@ -279,7 +279,10 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                 title: '',
                                 category: categories[0]?.name || '',
                                 active: true,
+                                is_pauta: false,
                                 price: '',
+                                cost_price: 0,
+                                pauta_price: 0,
                                 imageUrl: '',
                                 secondary_images: [],
                                 videos: [],
@@ -339,13 +342,18 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                             <div className="flex-grow flex flex-col justify-between">
                                 <div>
                                     <div className="flex justify-between items-start">
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-wrap gap-2">
                                             <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 inline-block">
                                                 {p.category}
                                             </span>
                                             <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 inline-block ${p.product_type === 'service' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
                                                 {p.product_type === 'service' ? '🛠️ Servicio' : '📦 Producto'}
                                             </span>
+                                            {p.is_pauta && (
+                                                <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 inline-block">
+                                                    📢 Pauta
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button 
@@ -395,10 +403,20 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between mt-4">
-                                    <div className="flex items-center gap-1 text-emerald-600 font-black">
-                                        <DollarSign size={14} />
-                                        <span className="text-lg">{(p.price || '0').toLocaleString()}</span>
+                                <div className="flex items-end justify-between mt-4">
+                                    <div className="space-y-0.5">
+                                        <div className="flex items-center gap-1 text-emerald-600 font-black">
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase">Venta:</span>
+                                            <DollarSign size={12} />
+                                            <span className="text-base">{(p.price || '0').toLocaleString()}</span>
+                                        </div>
+                                        {p.pauta_price ? (
+                                            <div className="flex items-center gap-1 text-blue-600 font-black">
+                                                <span className="text-[10px] text-slate-400 font-bold uppercase">Pauta:</span>
+                                                <DollarSign size={12} />
+                                                <span className="text-base">{(p.pauta_price || '0').toLocaleString()}</span>
+                                            </div>
+                                        ) : null}
                                     </div>
                                     <span className={`text-[10px] font-black uppercase ${p.active ? 'text-emerald-500' : 'text-slate-300'}`}>
                                         {p.active ? '• Activo' : '• Inactivo'}
@@ -439,7 +457,7 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                 </div>
                             </div>
 
-                            <div className="grid md:grid-cols-2 gap-4">
+                            <div className="grid md:grid-cols-3 gap-4 items-center">
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Item</label>
                                     <select 
@@ -457,6 +475,12 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                     </button>
                                     <span className="text-[10px] font-black text-slate-500 uppercase">Activo en la web</span>
                                 </div>
+                                <div className="flex items-center gap-3 pt-6 px-2">
+                                    <button type="button" onClick={() => setEditingProduct({ ...editingProduct, is_pauta: !editingProduct.is_pauta })} className={`w-10 h-5 rounded-full transition-all relative ${editingProduct.is_pauta ? 'bg-blue-500' : 'bg-slate-300'}`}>
+                                        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${editingProduct.is_pauta ? 'left-5.5' : 'left-0.5'}`}></div>
+                                    </button>
+                                    <span className="text-[10px] font-black text-slate-500 uppercase">Usar en Pauta</span>
+                                </div>
                             </div>
 
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -465,6 +489,18 @@ const ProductsManager: React.FC<ProductsManagerProps> = ({ companyId }) => {
                                     <div className="relative">
                                         <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                                         <input value={editingProduct.price} onChange={e => setEditingProduct({ ...editingProduct, price: e.target.value })} className="w-full bg-slate-50 border-none rounded-2xl pl-10 p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all" />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Precio Venta Pauta</label>
+                                    <div className="relative">
+                                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                        <input 
+                                            type="number" 
+                                            value={editingProduct.pauta_price || 0} 
+                                            onChange={e => setEditingProduct({ ...editingProduct, pauta_price: parseFloat(e.target.value) || 0 })} 
+                                            className="w-full bg-slate-50 border-none rounded-2xl pl-10 p-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all" 
+                                        />
                                     </div>
                                 </div>
                                 
