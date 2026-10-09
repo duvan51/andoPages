@@ -25,6 +25,8 @@ import { useTenant } from './hooks/useTenant';
 import { supabase } from './lib/supabase'; // Importación necesaria para el auto-login
 import CartDrawer from './components/shared/CartDrawer';
 import MobileCatalogWhatsApp from './components/MobileCatalogWhatsApp';
+import CustomerAuthModal from './components/customer/CustomerAuthModal';
+import CustomerProfileModal from './components/customer/CustomerProfileModal';
 
 const App: React.FC = () => {
   const { tenant, isMainDomain, isLoading: isTenantLoading, isError: isTenantError } = useTenant();
@@ -254,6 +256,9 @@ const App: React.FC = () => {
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
       />
+
+      <CustomerAuthModal />
+      <CustomerProfileModal />
 
       {(currentView !== 'catalogo-movil-whatsapp' && currentView !== 'catalogo-movil-pauta') && <CartDrawer />}
     </div>

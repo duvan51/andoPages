@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { useTenant } from '../hooks/useTenant';
 import { supabase } from '../lib/supabase';
 import { formatPriceCOP } from '../utils/format';
-import { Menu, X, Home, Sparkles, Gift, Clock, ShoppingBag } from 'lucide-react';
+import { Menu, X, Home, Sparkles, Gift, Clock, ShoppingBag, User } from 'lucide-react';
 import { UrgencyBadge } from './shared/UrgencyBadge';
 import { useCart } from '../context/CartContext';
+import { useCustomerAuth } from '../context/CustomerAuthContext';
 
 interface HeaderProps {
   onHomeClick: () => void;
@@ -18,6 +19,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onHomeClick, onServicesClick, onTreatmentsClick, onBookingClick, onOffersClick }) => {
   const { tenant } = useTenant();
   const { totalItems, setIsCartOpen } = useCart();
+  const { customer, setIsAuthModalOpen, setIsProfileModalOpen } = useCustomerAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isFashion = tenant?.business_type === 'fashion';
@@ -173,6 +175,42 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onServicesClick, onTreatme
         </nav>
 
         <div className="flex items-center gap-2 md:gap-4">
+          {/* Customer Account Button */}
+          <button
+            onClick={() => {
+              if (customer) {
+                setIsProfileModalOpen(true);
+              } else {
+                setIsAuthModalOpen(true);
+              }
+            }}
+            className={`flex items-center gap-2 p-2 md:px-3.5 md:py-2 rounded-full transition-all active:scale-95 border ${
+              isScrolled 
+                ? 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100' 
+                : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+            }`}
+            title={customer ? `Hola ${customer.full_name}` : 'Iniciar Sesión / Registrarme'}
+          >
+            {customer ? (
+              <>
+                <div className="w-6 h-6 rounded-full bg-amber-500 text-slate-950 font-black text-xs flex items-center justify-center shadow-xs">
+                  {customer.full_name?.charAt(0).toUpperCase() || 'V'}
+                </div>
+                <span className="hidden md:inline text-xs font-bold truncate max-w-[80px]">
+                  {customer.full_name?.split(' ')[0]}
+                </span>
+                <span className="hidden md:inline bg-amber-500/20 text-amber-500 text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                  {customer.points}p
+                </span>
+              </>
+            ) : (
+              <>
+                <User size={18} />
+                <span className="hidden md:inline text-xs font-bold">Ingresar</span>
+              </>
+            )}
+          </button>
+
           {/* Cart Button - Only for Fashion */}
           {isFashion && (
             <button 

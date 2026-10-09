@@ -14,6 +14,7 @@ import BundlesManager from './admin/sections/Bundles';
 import AdminAuth from './admin/shared/AdminAuth';
 import ReviewsManager from './admin/sections/ReviewsManager';
 import FormsManager from './admin/sections/FormsManager';
+import LiveStreamManagerModal from './admin/LiveStreamManagerModal';
 import { AdminTab } from './admin/layout/Sidebar';
 
 const AdminDashboard: React.FC = () => {
@@ -23,6 +24,7 @@ const AdminDashboard: React.FC = () => {
     const [error, setError] = useState('');
     const [currentCompanyId, setCurrentCompanyId] = useState<string | undefined>(() => localStorage.getItem('promedid_admin_company') || undefined);
     const [managedCompany, setManagedCompany] = useState<any>(null);
+    const [isLiveModalOpen, setIsLiveModalOpen] = useState(false);
     const [userEmail, setUserEmail] = useState<string | null>(null);
 
     // Password Recovery States
@@ -779,7 +781,13 @@ const AdminDashboard: React.FC = () => {
             companyName={managedCompany?.name || "Cargando..."}
             isSuperAdmin={isSuperAdmin}
             previewUrl={getPreviewUrl()}
+            onOpenLiveModal={() => setIsLiveModalOpen(true)}
         >
+            <LiveStreamManagerModal
+                isOpen={isLiveModalOpen}
+                onClose={() => setIsLiveModalOpen(false)}
+                companyId={currentCompanyId}
+            />
             {activeTab === 'website' && <WebsiteManager companyId={currentCompanyId} />}
             {activeTab === 'media' && <MediaLibrary companyId={currentCompanyId} />}
             {activeTab === 'analytics' && <AnalyticsDashboard companyId={currentCompanyId} />}

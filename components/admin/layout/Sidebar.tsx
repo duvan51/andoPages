@@ -22,9 +22,10 @@ interface SidebarProps {
     onLogout: () => void;
     companyName?: string;
     isSuperAdmin?: boolean;
+    onOpenLiveModal?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onLogout, companyName = "PROMEDID", isSuperAdmin = false }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onLogout, companyName = "PROMEDID", isSuperAdmin = false, onOpenLiveModal }) => {
     const menuItems = [
         { id: 'website', label: 'Editor Web', icon: LayoutDashboard },
         { id: 'products', label: 'Productos y Servicios', icon: Package },
@@ -76,6 +77,20 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onLogout, co
                     </button>
                 ))}
             </nav>
+
+            {/* Quick Action: Live Stream */}
+            {onOpenLiveModal && (
+                <div className="px-4 pb-2">
+                    <button
+                        title="Gestionar Live en Vivo"
+                        onClick={onOpenLiveModal}
+                        className="w-full flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 transition-all font-bold group border border-red-200/60 shadow-xs"
+                    >
+                        <span className="text-base animate-pulse">🔴</span>
+                        <span className="text-xs font-black uppercase tracking-wider hidden lg:block truncate">Gestionar Live</span>
+                    </button>
+                </div>
+            )}
 
             {/* Footer / User */}
             <div className="p-4 border-t border-slate-50">

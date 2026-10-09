@@ -1,12 +1,14 @@
 import React from 'react';
 import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { useTenant } from '../../hooks/useTenant';
 import { formatPriceCOP } from '../../utils/format';
 import { getWhatsAppLeadUrl } from '../../utils/whatsapp';
 
 const CartDrawer: React.FC = () => {
   const { cart, removeFromCart, updateQuantity, totalPrice, isCartOpen, setIsCartOpen, totalItems } = useCart();
+  const { customer, setIsAuthModalOpen } = useCustomerAuth();
   const { tenant } = useTenant();
   const isFashion = tenant?.business_type === 'fashion';
 
@@ -17,7 +19,11 @@ const CartDrawer: React.FC = () => {
       const variationStr = [item.selectedSize, item.selectedColor].filter(Boolean).join(' / ');
       return `- ${item.quantity}x ${item.title}${variationStr ? ` (${variationStr})` : ''} (${formatPriceCOP(item.price * item.quantity)})`;
     }).join('\n');
-    const message = `Hola! Me gustaría realizar un pedido:\n\n${itemsList}\n\n*Total: ${formatPriceCOP(totalPrice)}*`;
+    let message = `Hola! Me gustaría realizar un pedido:\n\n`;
+    if (customer) {
+      message += `👑 *Cliente Registrado (VIP):*\n• *Nombre:* ${customer.full_name}\n• *Celular:* ${customer.phone}\n• *Puntos VIP:* ${customer.points} pts (${customer.tier})\n\n*Detalle del pedido:*\n`;
+    }
+    message += `${itemsList}\n\n*Total: ${formatPriceCOP(totalPrice)}*`;
     const whatsappUrl = getWhatsAppLeadUrl({ 
       customMessage: message,
       phoneNumber: tenant?.phone // Usamos el teléfono registrado de la empresa
@@ -53,6 +59,34 @@ const CartDrawer: React.FC = () => {
               <X size={20} className="text-slate-400" />
             </button>
           </div>
+
+          {/* Banner de Fidelización */}
+          {customer ? (
+            <div className="mx-6 mt-4 p-3.5 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">👑</span>
+                <div>
+                  <p className="font-black text-slate-900 leading-tight">Socio {customer.tier} • {customer.full_name}</p>
+                  <p className="text-[11px] text-amber-800 font-bold mt-0.5">
+                    {customer.points} Puntos • Acumulas +{Math.round(totalPrice / 10000)} pts
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mx-6 mt-4 p-3.5 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl flex items-center justify-between text-xs">
+              <div>
+                <p className="font-black text-orange-950 leading-tight">🎁 ¿Quieres 50 Puntos de regalo?</p>
+                <p className="text-[11px] text-orange-800 mt-0.5">Crea tu cuenta VIP y acumula beneficios</p>
+              </div>
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-black text-[11px] uppercase tracking-wider transition-all shadow-xs shrink-0 ml-2"
+              >
+                Entrar
+              </button>
+            </div>
+          )}
 
           {/* Cart Items */}
           <div className="flex-grow overflow-y-auto p-6 space-y-6">

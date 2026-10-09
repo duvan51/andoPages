@@ -10,6 +10,7 @@ interface AdminLayoutProps {
     companyName?: string;
     isSuperAdmin?: boolean;
     previewUrl?: string;
+    onOpenLiveModal?: () => void;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({
@@ -19,7 +20,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
     onLogout,
     companyName,
     isSuperAdmin,
-    previewUrl
+    previewUrl,
+    onOpenLiveModal
 }) => {
     return (
         <div className="flex min-h-screen bg-slate-50/50">
@@ -29,6 +31,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
                 onLogout={onLogout}
                 companyName={companyName}
                 isSuperAdmin={isSuperAdmin}
+                onOpenLiveModal={onOpenLiveModal}
             />
 
             <main className="flex-grow flex flex-col h-screen overflow-hidden">
@@ -49,6 +52,15 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
                     </div>
 
                     <div className="flex items-center gap-4">
+                        {onOpenLiveModal && (
+                            <button
+                                onClick={onOpenLiveModal}
+                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white rounded-xl text-xs font-black uppercase transition-all shadow-lg shadow-red-600/20 active:scale-95 animate-pulse"
+                            >
+                                <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                                🔴 Gestionar Live
+                            </button>
+                        )}
                         {previewUrl && (
                             <a
                                 href={previewUrl}

@@ -5,6 +5,7 @@ import App from './App';
 
 import { TenantProvider } from './context/TenantContext';
 import { CartProvider } from './context/CartContext';
+import { CustomerAuthProvider } from './context/CustomerAuthContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -16,7 +17,9 @@ root.render(
   <React.StrictMode>
     <TenantProvider>
       <CartProvider>
-        <App />
+        <CustomerAuthProvider>
+          <App />
+        </CustomerAuthProvider>
       </CartProvider>
     </TenantProvider>
   </React.StrictMode>
