@@ -11,10 +11,11 @@ import {
     LogOut,
     ChevronRight,
     Globe,
-    ShieldCheck
+    ShieldCheck,
+    Users
 } from 'lucide-react';
 
-export type AdminTab = 'products' | 'offers' | 'packages' | 'landings' | 'media' | 'analytics' | 'widgets' | 'locations' | 'companies' | 'website' | 'settings' | 'reviews' | 'forms';
+export type AdminTab = 'products' | 'offers' | 'packages' | 'landings' | 'media' | 'analytics' | 'widgets' | 'locations' | 'companies' | 'website' | 'settings' | 'reviews' | 'forms' | 'customers';
 
 interface SidebarProps {
     activeTab: AdminTab;
@@ -28,6 +29,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onLogout, companyName = "PROMEDID", isSuperAdmin = false, onOpenLiveModal }) => {
     const menuItems = [
         { id: 'website', label: 'Editor Web', icon: LayoutDashboard },
+        { id: 'customers', label: 'Clientes y Usuarios', icon: Users },
         { id: 'products', label: 'Productos y Servicios', icon: Package },
         { id: 'landings', label: 'Páginas Landing', icon: Globe },
         { id: 'forms', label: 'Formularios y Leads', icon: FileText },

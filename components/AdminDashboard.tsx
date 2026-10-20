@@ -14,6 +14,7 @@ import BundlesManager from './admin/sections/Bundles';
 import AdminAuth from './admin/shared/AdminAuth';
 import ReviewsManager from './admin/sections/ReviewsManager';
 import FormsManager from './admin/sections/FormsManager';
+import CustomersManager from './admin/sections/CustomersManager';
 import LiveStreamManagerModal from './admin/LiveStreamManagerModal';
 import { AdminTab } from './admin/layout/Sidebar';
 
@@ -789,6 +790,7 @@ const AdminDashboard: React.FC = () => {
                 companyId={currentCompanyId}
             />
             {activeTab === 'website' && <WebsiteManager companyId={currentCompanyId} />}
+            {activeTab === 'customers' && <CustomersManager companyId={currentCompanyId} />}
             {activeTab === 'media' && <MediaLibrary companyId={currentCompanyId} />}
             {activeTab === 'analytics' && <AnalyticsDashboard companyId={currentCompanyId} />}
             {activeTab === 'locations' && <LocationsManager companyId={currentCompanyId} />}

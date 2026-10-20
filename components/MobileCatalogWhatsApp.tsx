@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { formatPriceCOP } from '../utils/format';
 import MarkdownRenderer from './shared/MarkdownRenderer';
+import ProductImageViewerModal from './shared/ProductImageViewerModal';
 import { 
   Search, 
   Filter, 
@@ -38,6 +39,7 @@ interface Product {
   sku?: string;
   pauta_price?: number;
   is_pauta?: boolean;
+  secondary_images?: string[];
 }
 
 interface CartItem {
@@ -101,6 +103,7 @@ export default function MobileCatalogWhatsApp({ tenant, isPauta = false }: { ten
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
 
   const fetchProducts = async () => {
     if (!tenant?.id) return;
@@ -138,6 +141,7 @@ export default function MobileCatalogWhatsApp({ tenant, isPauta = false }: { ten
   useEffect(() => {
     if (selectedProduct) {
       setActiveImageIndex(0);
+      setIsImageViewerOpen(false);
       setSelectedSize(selectedProduct.variants && selectedProduct.variants.length > 0 ? selectedProduct.variants[0].size : '');
       setSelectedColor(selectedProduct.variants && selectedProduct.variants.length > 0 ? selectedProduct.variants[0].color : '');
     }
@@ -443,39 +447,76 @@ export default function MobileCatalogWhatsApp({ tenant, isPauta = false }: { ten
               {(() => {
                 const images = [
                   selectedProduct.imageUrl,
-                  ...(selectedProduct.variants?.map(v => v.image_url) || [])
+                  ...(selectedProduct.variants?.map(v => v.image_url) || []),
+                  ...(selectedProduct.secondary_images || [])
                 ].filter((url): url is string => !!url);
                 const uniqueImages = Array.from(new Set(images));
                 const currentImageUrl = uniqueImages[activeImageIndex];
                 
                 return (
                   <div className="mb-4">
-                    <div className="aspect-square bg-slate-50 rounded-2xl overflow-hidden relative border border-slate-100">
+                    {/* Contenedor Adaptativo: nunca recorta la foto (object-contain + fondo ambiental suave) */}
+                    <div 
+                      onClick={() => currentImageUrl && setIsImageViewerOpen(true)}
+                      className="aspect-square bg-slate-900/5 rounded-2xl overflow-hidden relative border border-slate-200/70 flex items-center justify-center cursor-pointer group select-none shadow-inner"
+                      title="Toca para ver la foto sola, acercar o usar la lupa"
+                    >
+                      {/* Fondo ambiental difuminado para armonizar cualquier tamaño y forma */}
+                      {currentImageUrl && (
+                        <div 
+                          className="absolute inset-0 bg-cover bg-center filter blur-2xl opacity-20 scale-125 pointer-events-none transition-all duration-500"
+                          style={{ backgroundImage: `url(${currentImageUrl})` }}
+                          aria-hidden="true"
+                        />
+                      )}
+
                       {currentImageUrl ? (
                         <img 
                           src={currentImageUrl} 
                           alt={selectedProduct.title} 
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain relative z-10 p-1.5 transition-transform duration-300 group-hover:scale-[1.02]"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                        <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 relative z-10">
                           <Package size={48} />
                         </div>
                       )}
                       
+                      {/* Botón flotante: Ver sola / Lupa */}
+                      {currentImageUrl && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsImageViewerOpen(true);
+                          }}
+                          className="absolute bottom-2.5 right-2.5 z-20 bg-slate-900/85 hover:bg-slate-950 text-white text-[10px] font-extrabold px-2.5 py-1.5 rounded-full backdrop-blur-md flex items-center gap-1.5 shadow-lg transition-all active:scale-95 group-hover:scale-105 border border-white/10"
+                          title="Ver imagen completa, acercar con zoom o usar la lupa"
+                        >
+                          <Search size={12} className="text-emerald-400" />
+                          <span>Ver completa / Lupa</span>
+                        </button>
+                      )}
+
                       {uniqueImages.length > 1 && (
                         <>
                           <button
-                            onClick={() => setActiveImageIndex(prev => Math.max(0, prev - 1))}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveImageIndex(prev => Math.max(0, prev - 1));
+                            }}
                             disabled={activeImageIndex === 0}
-                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/55 text-white p-1.5 rounded-full disabled:opacity-30"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full disabled:opacity-20 z-20 transition-all shadow-md active:scale-95"
                           >
                             <ChevronLeft size={18} />
                           </button>
                           <button
-                            onClick={() => setActiveImageIndex(prev => Math.min(uniqueImages.length - 1, prev + 1))}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveImageIndex(prev => Math.min(uniqueImages.length - 1, prev + 1));
+                            }}
                             disabled={activeImageIndex === uniqueImages.length - 1}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/55 text-white p-1.5 rounded-full disabled:opacity-30"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full disabled:opacity-20 z-20 transition-all shadow-md active:scale-95"
                           >
                             <ChevronRight size={18} />
                           </button>
@@ -491,16 +532,27 @@ export default function MobileCatalogWhatsApp({ tenant, isPauta = false }: { ten
                             key={idx}
                             onClick={() => setActiveImageIndex(idx)}
                             className={`w-12 h-12 rounded-lg overflow-hidden border-2 relative transition-all ${
-                              activeImageIndex === idx ? 'border-[#128c7e]' : 'border-transparent'
+                              activeImageIndex === idx ? 'border-[#128c7e] scale-105 shadow-sm' : 'border-transparent opacity-70 hover:opacity-100'
                             }`}
                           >
                             <img src={url} alt="miniatura" className="w-full h-full object-cover" />
                             {activeImageIndex !== idx && (
-                              <div className="absolute inset-0 bg-black/40"></div>
+                              <div className="absolute inset-0 bg-black/25"></div>
                             )}
                           </button>
                         ))}
                       </div>
+                    )}
+
+                    {/* Modal Visor Pantalla Completa + Lupa */}
+                    {isImageViewerOpen && (
+                      <ProductImageViewerModal
+                        isOpen={isImageViewerOpen}
+                        onClose={() => setIsImageViewerOpen(false)}
+                        images={uniqueImages}
+                        initialIndex={activeImageIndex}
+                        productTitle={selectedProduct.title}
+                      />
                     )}
                   </div>
                 );

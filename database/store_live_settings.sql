@@ -41,14 +41,16 @@ DROP POLICY IF EXISTS "Permitir lectura publica de live settings" ON public.stor
 CREATE POLICY "Permitir lectura publica de live settings"
   ON public.store_live_settings
   FOR SELECT
+  TO public
   USING (true);
 
--- 2. Política de Escritura / Actualización (Usuarios autenticados / Admin andoPages)
+-- 2. Política de Escritura / Actualización (Panel Admin andoPages / App)
 DROP POLICY IF EXISTS "Permitir actualizacion para usuarios autenticados" ON public.store_live_settings;
-CREATE POLICY "Permitir actualizacion para usuarios autenticados"
+DROP POLICY IF EXISTS "Permitir gestion completa de live settings" ON public.store_live_settings;
+CREATE POLICY "Permitir gestion completa de live settings"
   ON public.store_live_settings
   FOR ALL
-  TO authenticated
+  TO public
   USING (true)
   WITH CHECK (true);
 

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ShoppingBag, ArrowRight, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
+import { X, ShoppingBag, ArrowRight, ChevronLeft, ChevronRight, MessageCircle, Search } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useTenant } from '../../hooks/useTenant';
 import { formatPriceCOP } from '../../utils/format';
 import { getWhatsAppLeadUrl } from '../../utils/whatsapp';
 import OptimizedImage from './OptimizedImage';
 import MarkdownRenderer from './MarkdownRenderer';
+import ProductImageViewerModal from './ProductImageViewerModal';
 
 interface ProductQuickViewProps {
   product: any;
@@ -19,6 +20,7 @@ const ProductQuickView: React.FC<ProductQuickViewProps> = ({ product, isOpen, on
   const { addToCart } = useCart();
   const { tenant } = useTenant();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   const isFashion = tenant?.business_type === 'fashion';
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
@@ -92,27 +94,53 @@ const ProductQuickView: React.FC<ProductQuickViewProps> = ({ product, isOpen, on
         </button>
 
         {/* Left: Image Carousel */}
-        <div className="md:w-1/2 relative bg-slate-950 h-1/2 md:h-full group flex items-center justify-center">
-          <div className="w-full h-full relative flex items-center justify-center">
+        <div 
+          onClick={() => setIsViewerOpen(true)}
+          className="md:w-1/2 relative bg-slate-950 h-1/2 md:h-full group flex items-center justify-center cursor-pointer select-none"
+        >
+          {/* Fondo ambiental difuminado */}
+          {images[currentImageIndex] && (
+            <div 
+              className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-20 scale-125 pointer-events-none"
+              style={{ backgroundImage: `url(${images[currentImageIndex]})` }}
+              aria-hidden="true"
+            />
+          )}
+
+          <div className="w-full h-full relative flex items-center justify-center p-2">
             <OptimizedImage 
               src={images[currentImageIndex]} 
               alt={product.title} 
               objectFit="contain"
-              className="w-full h-full transition-opacity duration-500"
+              className="w-full h-full transition-opacity duration-500 relative z-10"
             />
           </div>
 
+          {/* Botón flotante para ver en grande con lupa */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsViewerOpen(true);
+            }}
+            className="absolute bottom-6 right-6 z-30 bg-slate-900/85 hover:bg-slate-950 text-white text-xs font-bold px-3 py-1.5 rounded-full backdrop-blur-md flex items-center gap-1.5 shadow-lg border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0"
+            title="Ver imagen completa, acercar con zoom o usar la lupa"
+          >
+            <Search size={14} className="text-emerald-400" />
+            <span>Ver completa / Lupa</span>
+          </button>
+
           {images.length > 1 && (
-            <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+            <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
               <button 
                 onClick={handlePrevImage}
-                className="p-3 bg-white/10 backdrop-blur-md rounded-full shadow-lg hover:bg-white/20 text-white transition-all transform -translate-x-2 group-hover:translate-x-0 border border-white/10"
+                className="pointer-events-auto p-3 bg-white/10 backdrop-blur-md rounded-full shadow-lg hover:bg-white/20 text-white transition-all transform -translate-x-2 group-hover:translate-x-0 border border-white/10"
               >
                 <ChevronLeft size={24} />
               </button>
               <button 
                 onClick={handleNextImage}
-                className="p-3 bg-white/10 backdrop-blur-md rounded-full shadow-lg hover:bg-white/20 text-white transition-all transform translate-x-2 group-hover:translate-x-0 border border-white/10"
+                className="pointer-events-auto p-3 bg-white/10 backdrop-blur-md rounded-full shadow-lg hover:bg-white/20 text-white transition-all transform translate-x-2 group-hover:translate-x-0 border border-white/10"
               >
                 <ChevronRight size={24} />
               </button>
@@ -226,6 +254,17 @@ const ProductQuickView: React.FC<ProductQuickViewProps> = ({ product, isOpen, on
           </div>
         </div>
       </div>
+
+      {/* Visor Pantalla Completa con Zoom y Lupa */}
+      {isViewerOpen && (
+        <ProductImageViewerModal
+          isOpen={isViewerOpen}
+          onClose={() => setIsViewerOpen(false)}
+          images={images}
+          initialIndex={currentImageIndex}
+          productTitle={product.title}
+        />
+      )}
     </div>,
     document.body
   );
